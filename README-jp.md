@@ -2,6 +2,8 @@
 
 Three.jsとthree-vrmライブラリを使用して構築された、VRMA（VRMアニメーション）サポート付きのWebベースVRM（Virtual Reality Model）ビューアーです。
 
+[English](README.md) | 日本語
+
 ## 特徴
 
 - 📱 **レスポンシブデザイン**: デスクトップとモバイルデバイスで動作
@@ -158,5 +160,3 @@ vrm_viewer/
 - VRMコンソーシアム - VRMフォーマット仕様
 
 ---
-
-英語版ドキュメントは [README.md](README.md) をご覧ください。
