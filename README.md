@@ -30,7 +30,7 @@ Open `index.html` in a web browser to see the demo. The viewer includes:
 vrm_viewer/
 ├── index.html              # Main viewer application
 ├── VRM/
-│   └── ロング女の子1.vrm     # Sample VRM model
+│   └── sample.vrm     # Sample VRM model
 ├── VRMA/
 │   ├── original_01.vrma    # Custom head nod animation
 │   └── original_02.vrma    # Custom arm wave animation
