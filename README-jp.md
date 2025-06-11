@@ -30,7 +30,7 @@ Three.jsとthree-vrmライブラリを使用して構築された、VRMA（VRM�
 vrm_viewer/
 ├── index.html              # メインビューアーアプリケーション
 ├── VRM/
-│   └── ロング女の子1.vrm     # サンプルVRMモデル
+│   └── sample.vrm     # サンプルVRMモデル
 ├── VRMA/
 │   ├── original_01.vrma    # カスタム頭うなずきアニメーション
 │   └── original_02.vrma    # カスタム腕振りアニメーション
