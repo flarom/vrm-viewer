@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>three-vrm with VRMA animation</title>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<style>
+			body {
+				margin: 0;
+				font-family: 'Inter', sans-serif; /* Use Inter font */
+				overflow: hidden; /* Prevent scrolling */
+			}
+			canvas {
+				display: block;
+				width: 100vw;
+				height: 100vh;
+			}
+			.controls {
+				position: absolute;
+				top: 10px;
+				left: 10px;
+				background: rgba(0, 0, 0, 0.8); /* Slightly darker background */
+				color: white;
+				padding: 20px; /* More padding */
+				border-radius: 12px; /* More rounded corners */
+				z-index: 100;
+				display: flex;
+				flex-direction: column;
+				gap: 12px; /* More gap */
+				box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+			}
+			.controls div {
+				display: flex;
+				flex-wrap: wrap; /* Allow buttons to wrap */
+				align-items: center;
+				gap: 10px;
+			}
+			.controls label {
+				min-width: 90px;
+				font-weight: bold;
+				color: #e0e0e0;
+			}
+			.controls button {
+				flex: 1;
+				min-width: 80px; /* Ensure minimum width for buttons */
+				padding: 10px 15px; /* More padding */
+				background: linear-gradient(145deg, #6a82fb, #fc5c7d); /* Colorful gradient */
+				color: white;
+				border: none;
+				border-radius: 6px; /* More rounded corners */
+				cursor: pointer;
+				font-weight: bold;
+				transition: background 0.3s ease, transform 0.1s ease;
+				box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+				text-transform: uppercase; /* Uppercase text */
+				letter-spacing: 0.5px;
+			}
+			.controls button.vrma-btn {
+				background: linear-gradient(145deg, #4CAF50, #2e8b57); /* Green gradient for VRMA buttons */
+			}
+			.controls button:hover {
+				background: linear-gradient(145deg, #5c75e8, #e84c6c); /* Hover effect */
+				transform: translateY(-2px); /* Slight lift */
+			}
+			.controls button.vrma-btn:hover {
+				background: linear-gradient(145deg, #3e8e41, #246a41); /* Hover effect for VRMA buttons */
+			}
+			.controls button:active {
+				transform: translateY(1px);
+			}
+			.controls button:disabled {
+				background: #666;
+				cursor: not-allowed;
+				opacity: 0.7;
+				box-shadow: none;
+				transform: none;
+			}
+			.status {
+				margin-top: 10px;
+				font-size: 14px;
+				color: #ccc;
+				text-align: center;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="controls">
+			<div>
+				<label>VRM Model:</label>
+				<span>ロング女の子1.vrm</span>
+			</div>
+			<div id="vrmaButtons">
+				<label>VRMA Animations:</label>
+				<button id="vrma01Btn" class="vrma-btn" disabled>original_01</button>
+				<button id="vrma02Btn" class="vrma-btn" disabled>original_02</button>
+			</div>
+			<div>
+				<button id="playBtn" disabled>Play</button>
+				<button id="pauseBtn" disabled>Pause</button>
+				<button id="stopBtn" disabled>Stop</button>
+			</div>
+			<div class="status" id="status">VRMモデルを読み込み中...</div>
+		</div>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js",
+					"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/",
+					"@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.min.js",
+					"@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.min.js"
+				}
+			}
+		</script>
+
+		<script type="module">
+			import * as THREE from 'three';
+			import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+			import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation'; 
+
+			// DOM elements
+			const vrmaButtons = document.querySelectorAll('.vrma-btn'); // Select all VRMA buttons
+			const playBtn = document.getElementById('playBtn');
+			const pauseBtn = document.getElementById('pauseBtn');
+			const stopBtn = document.getElementById('stopBtn');
+			const statusDiv = document.getElementById('status');
+
+			// --- Three.js Setup ---
+			const renderer = new THREE.WebGLRenderer({ antialias: true });
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.outputEncoding = THREE.sRGBEncoding; // Correct color space
+			document.body.appendChild( renderer.domElement );
+
+			const camera = new THREE.PerspectiveCamera( 30.0, window.innerWidth / window.innerHeight, 0.1, 20.0 );
+			camera.position.set( 0.0, 1.0, 5.0 );
+
+			const controls = new OrbitControls( camera, renderer.domElement );
+			controls.screenSpacePanning = true;
+			controls.target.set( 0.0, 1.0, 0.0 );
+			controls.update();
+
+			const scene = new THREE.Scene();
+			scene.background = new THREE.Color(0x222222); // Darker background
+
+			const light = new THREE.DirectionalLight( 0xffffff, 3.0 ); // Increased intensity
+			light.position.set( 1.0, 1.0, 1.0 ).normalize();
+			scene.add( light );
+
+			const ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 ); // Brighter ambient light
+			scene.add( ambientLight );
+
+			// --- Global Variables for VRM and Animation ---
+			let currentVrm = undefined;
+			let currentMixer = undefined;
+			let currentAction = undefined;
+			let vrmaAnimationClip = undefined; // Store the final THREE.AnimationClip
+
+			// --- GLTF Loader with VRM and VRMA Plugins ---
+			const loader = new GLTFLoader();
+			loader.crossOrigin = 'anonymous';
+
+			loader.register( ( parser ) => {
+				return new VRMLoaderPlugin( parser );
+			} );
+
+			loader.register( ( parser ) => {
+				return new VRMAnimationLoaderPlugin( parser );
+			} );
+
+			// --- File Paths ---
+			const VRM_MODEL_URL = '/VRM/ロング女の子1.vrm'; // Fixed VRM model path
+			const VRMA_ANIMATION_URLS = [ // VRMA animation paths
+				'/VRMA/original_01.vrma',
+				'/VRMA/original_02.vrma',
+			];
+
+			// --- File Loading Functions ---
+			/**
+			 * Loads a VRM model from a specified URL.
+			 * @param {string} url The URL of the VRM file.
+			 * @returns {Promise<any>} A promise that resolves with the loaded VRM.
+			 */
+			async function loadVRM(url) {
+				try {
+					statusDiv.textContent = 'VRMモデルを読み込み中...';
+					
+					return new Promise((resolve, reject) => {
+						loader.load(
+							url,
+							(gltf) => {
+								const vrm = gltf.userData.vrm;
+
+								// Apply performance optimizations
+								VRMUtils.removeUnnecessaryVertices( gltf.scene );
+								VRMUtils.combineSkeletons( gltf.scene );
+								VRMUtils.combineMorphs( vrm );
+
+								// Disable frustum culling for all objects in the VRM scene
+								vrm.scene.traverse( ( obj ) => {
+									obj.frustumCulled = false;
+								} );
+
+								// Remove previous VRM if one is loaded
+								if (currentVrm) {
+									scene.remove(currentVrm.scene);
+									currentVrm.dispose(); // Dispose of the previous VRM
+								}
+
+								scene.add( vrm.scene );
+								vrm.scene.rotation.y = Math.PI; // モデルを正面に回転
+								currentVrm = vrm;
+								
+								// Create a new AnimationMixer for the current VRM
+								currentMixer = new THREE.AnimationMixer( vrm.scene );
+								
+								statusDiv.textContent = 'VRMモデルの読み込みが完了しました！';
+								console.log( 'VRM loaded:', vrm );
+								
+								resolve(vrm);
+							},
+							(progress) => {
+								const percent = (100.0 * ( progress.loaded / progress.total )).toFixed(1);
+								statusDiv.textContent = `VRMモデルを読み込み中... ${percent}%`;
+							},
+							(error) => {
+								console.error('Error loading VRM:', error);
+								statusDiv.textContent = 'VRMモデルの読み込み中にエラーが発生しました';
+								reject(error);
+							}
+						);
+					});
+				} catch (error) {
+					console.error('Error in loadVRM:', error);
+					statusDiv.textContent = 'VRMモデルの読み込み中にエラーが発生しました';
+				}
+			}
+
+			/**
+			 * Loads a VRMA animation from a specified URL and converts it to a THREE.AnimationClip.
+			 * @param {string} url The URL of the VRMA file.
+			 * @returns {Promise<THREE.AnimationClip>} A promise that resolves with the generated AnimationClip.
+			 */
+			async function loadVRMA(url) {
+				if (!currentVrm) {
+					statusDiv.textContent = 'VRMモデルが読み込まれていません。先にVRMモデルをロードしてください。';
+					return;
+				}
+
+				try {
+					statusDiv.textContent = 'VRMAアニメーションを読み込み中...';
+					
+					return new Promise((resolve, reject) => {
+						loader.load(
+							url,
+							(gltf) => {
+								console.log('GLTF loaded (VRMA):', gltf);
+								
+								// gltf.userData.vrmAnimations[0] contains the raw VRMAnimation data object
+								const vrmAnimationData = gltf.userData.vrmAnimations && gltf.userData.vrmAnimations[0];
+
+								if (vrmAnimationData) {
+									// Call the standalone createVRMAnimationClip function
+									// It takes the VRMAnimation data object and the current VRM model
+									const clip = createVRMAnimationClip(vrmAnimationData, currentVrm);
+									
+									if (clip) {
+										vrmaAnimationClip = clip;
+										statusDiv.textContent = 'アニメーションの読み込みが完了しました！';
+										console.log('Generated AnimationClip:', vrmaAnimationClip);
+										
+										updateButtons(); // Enable play/pause/stop after animation is loaded
+										resolve(vrmaAnimationClip);
+									} else {
+										throw new Error('VRMAデータからAnimationClipを作成できませんでした。');
+									}
+								} else {
+									throw new Error('ファイル内に有効なVRMAアニメーションが見つかりませんでした。');
+								}
+							},
+							(progress) => {
+								const percent = (100.0 * ( progress.loaded / progress.total )).toFixed(1);
+								statusDiv.textContent = `VRMAアニメーションを読み込み中... ${percent}%`;
+							},
+							(error) => {
+								console.error('Error loading animation:', error);
+								statusDiv.textContent = 'アニメーションファイルの読み込み中にエラーが発生しました: ' + error.message;
+								reject(error);
+							}
+						);
+					});
+				} catch (error) {
+					console.error('Error in loadVRMA:', error);
+					statusDiv.textContent = 'アニメーションファイルの読み込み中にエラーが発生しました';
+				}
+			}
+
+			// --- Animation Control Functions ---
+			/**
+			 * Starts playing the loaded VRMA animation.
+			 */
+			function playAnimation() {
+				if (currentVrm && vrmaAnimationClip && currentMixer) {
+					// Stop any currently playing action
+					if (currentAction) {
+						currentAction.stop();
+					}
+					
+					try {
+						console.log('Playing animation...');
+						
+						// Create and configure animation action from the generated clip
+						currentAction = currentMixer.clipAction(vrmaAnimationClip);
+						currentAction.setLoop(THREE.LoopRepeat); // Loop the animation
+						currentAction.clampWhenFinished = true; // Stay at the last frame when finished
+						currentAction.reset(); // Reset to the start of the animation
+						currentAction.play(); // Start playing
+						
+						statusDiv.textContent = `アニメーションを再生中 (${vrmaAnimationClip.tracks.length} トラック, ${vrmaAnimationClip.duration.toFixed(2)}s)`;
+						console.log('Animation started successfully.');
+					} catch (error) {
+						console.error('Error playing animation:', error);
+						statusDiv.textContent = 'アニメーションの再生中にエラーが発生しました: ' + error.message;
+					}
+				} else {
+					statusDiv.textContent = 'VRMモデルとアニメーションが読み込まれている必要があります。';
+				}
+			}
+
+			/**
+			 * Toggles the pause state of the animation.
+			 */
+			function pauseAnimation() {
+				if (currentAction) {
+					currentAction.paused = !currentAction.paused;
+					statusDiv.textContent = currentAction.paused ? 'アニメーション一時停止中' : 'アニメーション再生中...';
+				}
+			}
+
+			/**
+			 * Stops the animation and resets the model's pose.
+			 */
+			function stopAnimation() {
+				if (currentAction) {
+					currentAction.stop();
+					currentAction = undefined;
+					currentMixer.stopAllAction(); // Stop all actions on the mixer
+
+					// Reset VRM pose (optional, but good for stopping)
+					if (currentVrm) {
+						currentVrm.humanoid.resetPose();
+					}
+					statusDiv.textContent = 'アニメーションが停止しました。';
+				}
+			}
+
+			// --- UI and Event Handlers ---
+			/**
+			 * Updates the state of the control buttons based on loaded files.
+			 */
+			function updateButtons() {
+				const hasVrm = currentVrm !== undefined;
+				const hasVrma = vrmaAnimationClip !== undefined;
+				
+				// Enable VRMA selection buttons once VRM is loaded
+				vrmaButtons.forEach(btn => {
+					btn.disabled = !hasVrm;
+				});
+
+				// Enable play/pause/stop buttons only if both VRM and an animation are loaded
+				playBtn.disabled = !(hasVrm && hasVrma);
+				pauseBtn.disabled = !(hasVrm && hasVrma);
+				stopBtn.disabled = !(hasVrm && hasVrma);
+			}
+
+			// Add event listeners for VRMA animation buttons
+			vrmaButtons.forEach((button, index) => {
+				button.addEventListener('click', async () => {
+					// Stop current animation if playing before loading new one
+					if (currentAction) {
+						currentAction.stop();
+						currentAction = undefined;
+					}
+					vrmaAnimationClip = undefined; // Clear previous animation clip
+					
+					const vrmaUrl = VRMA_ANIMATION_URLS[index];
+					await loadVRMA(vrmaUrl);
+				});
+			});
+
+			playBtn.addEventListener('click', playAnimation);
+			pauseBtn.addEventListener('click', pauseAnimation);
+			stopBtn.addEventListener('click', stopAnimation);
+
+			window.addEventListener('resize', () => {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			});
+
+			// --- Helpers ---
+			const gridHelper = new THREE.GridHelper( 10, 10 );
+			scene.add( gridHelper );
+
+			const axesHelper = new THREE.AxesHelper( 5 );
+			scene.add( axesHelper );
+
+			// --- Animation Loop ---
+			const clock = new THREE.Clock();
+
+			function animate() {
+				requestAnimationFrame( animate );
+
+				const deltaTime = clock.getDelta();
+
+				// Update VRM and AnimationMixer
+				if ( currentVrm ) {
+					currentVrm.update( deltaTime );
+				}
+				if ( currentMixer ) {
+					currentMixer.update( deltaTime );
+				}
+
+				controls.update(); // Update orbit controls
+				renderer.render( scene, camera );
+			}
+
+			// Start the animation loop
+			animate();
+
+			// --- Initial Load ---
+			// Load the fixed VRM model when the page loads
+			window.addEventListener('DOMContentLoaded', async () => {
+				await loadVRM(VRM_MODEL_URL);
+				updateButtons(); // Update button states after VRM is loaded
+			});
+		</script>
+	</body>
+</html>
