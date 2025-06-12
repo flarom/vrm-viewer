@@ -4,7 +4,7 @@ English | [日本語](README-jp.md)
 
 A web-based VRM (Virtual Reality Model) viewer with VRMA (VRM Animation) support built using Three.js and the three-vrm library.
 
-[Try the Demo](https://TK-256.github.io/vrm-viewer/)
+[Try the Demo](https://tk256ailab.github.io/vrm-viewer/)
 
 ## Features
 
