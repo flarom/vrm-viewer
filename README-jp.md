@@ -4,7 +4,7 @@
 
 Three.jsとthree-vrmライブラリを使用して構築された、VRMA（VRMアニメーション）サポート付きのWebベースVRM（Virtual Reality Model）ビューアーです。
 
-[デモを試す](https://tk-256.github.io/vrm-viewer/)
+[デモを試す](https://tk256ailab.github.io/vrm-viewer/)
 
 ## 特徴
 
