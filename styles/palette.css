@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0');
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+
+:root {
+    --bg:               #ffffff;
+    --bg-dark:          #2A2229;
+    --text:             #2A2229;
+    --link:             #0098b3;
+    --link-hover:       #0098b333;
+    --doc-bg:           #fffbe8;
+    --border:           #2A2229;
+    --button:           #EFE091;
+    --button-cancel:    #ef9191;
+    --button-off:       #d3d3d3;
+    --field-bg:         #ffffff;
+    --selection:        #fffbe8;
+    --selection-bg:     #0098b3;
+    --codeblock:        #fffbe8;
+    --codeblock-bg:     #2A2229;
+}
