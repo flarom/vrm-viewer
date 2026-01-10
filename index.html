@@ -154,6 +154,10 @@
 
 					</div>
 				</div>
+				<div class="setting switch-wrapper">
+					<span class="switch-text">Skybox blur</span>
+					<input type="range" id="skyboxBlurRange" min="0" max="1" step="0.05" value="0">
+				</div>
 				<div class="setting bottom switch-wrapper">
 					<span class="switch-text">Skybox position</span>
 					<input type="range" id="skyboxRotationRange" min="0" max="360" step="1" value="180">
@@ -275,6 +279,7 @@
 		const setBackgroundImageBtn = document.getElementById('setBackgroundImageBtn');
 		const backgroundImageFileInput = document.getElementById('backgroundImageFileInput');
 		const skyboxRotationRange = document.getElementById('skyboxRotationRange');
+		const skyboxBlurRange = document.getElementById('skyboxBlurRange');
 		const fovRange = document.getElementById('fovRange');
 
 		// events
@@ -412,6 +417,9 @@
 			if (scene && scene.background) {
 				scene.backgroundRotation.y = angle;
 			}
+		});
+		skyboxBlurRange.addEventListener('input', (e) => {
+			scene.backgroundBlurriness = e.target.value;
 		});
 		fovRange.addEventListener('input', (e) => {
 			const fov = parseFloat(e.target.value);
