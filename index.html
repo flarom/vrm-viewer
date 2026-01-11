@@ -30,10 +30,11 @@
 </head>
 
 <body class="theme-light">
+	<!-- #region SIDEBAR -->
 	<div id="controls-bar" class="sidebar">
 		<header class="window-title">
 			<div class="header-left">
-				<button id="openFileBtn" class="icon-button hide-on-tablet" translate="no" title="Open model">open_in_browser</button>
+				<button id="openFileBtn" class="icon-button hide-on-tablet" translate="no" title="Open model" data-locale-attr="title:app.sidebar.header.open-model">open_in_browser</button>
 				<button class="icon-button hide-on-pc" onmousedown="toggleSidebar('controls-bar')">arrow_back</button>
 			</div>
 			<div class="header-center">
@@ -45,19 +46,19 @@
 					<button class="icon-button" translate="no" onmousedown="toggleDropdown('more-menu')">more_vert</button>
 					<div class="dropdown-content menu" id="more-menu">
 						<button class="text-button" id="openFileBtn2">
-							<span>Open model</span>
+							<span data-locale="app.sidebar.header-more-menu.open-model">Open model</span>
 						</button>
 						<button class="text-button" id="modelInfoBtn">
-							<span>Model information</span>
+							<span data-locale="app.sidebar.header-more-menu.model-information">Model information</span>
 						</button>
 						<hr>
 						<button class="text-button" onmouseup="showMessageFromFile('dialog/settings.html', true, false, true, true, 600); hideAllMenus()">
-							<span>Settings</span>
+							<span data-locale="app.sidebar.header-more-menu.settings">Settings</span>
 							<kbd>Ctrl+,</kbd>
 						</button>
 						<hr>
 						<button class="text-button" onmouseup="showMessageFromFile('dialog/about.html'); hideAllMenus()">
-							<span>About Figure</span>
+							<span data-locale="app.sidebar.header-more-menu.about-figure">About Figure</span>
 							<kbd>F1</kbd>
 						</button>
 					</div>
@@ -65,25 +66,25 @@
 			</div>
 		</header>
 		<div class="tab" id="tab-model">
-			<details open><summary>Body</summary>
+			<details open><summary data-locale="app.sidebar.model-tab.body">Body</summary>
 				<div class="setting top switch-wrapper">
-					<span class="switch-text">Animation</span>
-					<select name="animationSlct" id="AnimationSlct"></select>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.body.animation">Animation</span>
+					<select name="animation-select" id="animation-select"></select>
 				</div>
 				<div class="setting bottom switch-wrapper">
-					<span class="switch-text">Pose</span>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.body.pose">Pose</span>
 					<select name="poseSlct" id="PoseSlct"></select>
 				</div>
 				<div class="setting bottom top switch-wrapper">
-					<span class="switch-text">Reset pose</span>
-					<button class='text-button' id="stopBtn" disabled>Reset</button>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.body.reset-pose">Reset pose</span>
+					<button class='text-button' id="stop-btn" disabled data-locale="app.sidebar.model-tab.body.reset-pose.reset">Reset</button>
 				</div>
 			</details>
-			<details open><summary>Face</summary>
+			<details open><summary data-locale="app.sidebar.model-tab.face">Face</summary>
 				<div class="setting top switch-wrapper">
-					<span class="switch-text">Look at camera</span>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.face.look-at-camera">Look at camera</span>
 					<label class="switch">
-						<input type="checkbox" id="look_follow_camera" />
+						<input type="checkbox" id="look-follow-camera" />
 						<span class="slider"></span>
 					</label>
 				</div>
@@ -91,137 +92,137 @@
 					<div id="look_joystick" class="joystick-container" style="touch-action:none;">
 						<div id="look_joystick_handle" class="joystick-handle"></div>
 					</div>
-					<div style="font-size:0.85em;opacity: 0.5;">Drag inside the box to aim eyes.</div>
+					<div style="font-size:0.85em;opacity: 0.5;" data-locale="app.sidebar.model-tab.face.joystick-hint">Drag inside the box to aim eyes.</div>
 				</div>
 				<div class="setting top bottom switch-wrapper">
-					<span class="switch-text">Recenter eyes</span>
-					<button class='text-button' id="resetLookBtn">Recenter</button>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.face.recenter-eyes">Recenter eyes</span>
+					<button class='text-button' id="reset-look-btn" data-locale="app.sidebar.model-tab.face.recenter-eyes.recenter">Recenter</button>
 				</div>
-				<div id="blendShapeRanges">
+				<div id="blend-shape-ranges">
 
 				</div>
 				<div class="setting top bottom switch-wrapper">
-					<span class="switch-text">Clear all expressions</span>
-					<button class='text-button' id="resetExpressionBtn">Reset</button>
+					<span class="switch-text" data-locale="app.sidebar.model-tab.face.clear-expressions">Clear all expressions</span>
+					<button class='text-button' id="reset-expression-btn" data-locale="app.sidebar.model-tab.face.clear-expressions.reset">Reset</button>
 				</div>
 			</details>
-			<details open><summary>Materials</summary>
-				<div id="materialsList">
+			<details open><summary data-locale="app.sidebar.model-tab.materials">Materials</summary>
+				<div id="materials-list">
 					
 				</div>
 			</details>
 		</div>
 		<div class="tab" id="tab-scene">
-			<details open><summary>Camera</summary>
+			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
 				<div class="setting top bottom switch-wrapper">
-					<span class="switch-text">Field of view</span>
-					<input type="range" id="fovRange" min="5" max="120" step="5" value="30">
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.camera.fov">Field of view</span>
+					<input type="range" id="fov-range" min="5" max="120" step="5" value="30">
 				</div>
 			</details>
-			<details open><summary>Light</summary>
+			<details open><summary data-locale="app.sidebar.scene-tab.light">Light</summary>
 				<div class="setting top switch-wrapper">
-					<span class="switch-text">Position X</span>
-					<input type="range" id="light-pos-x" min="-5" max="5" step="0.5" value="0.5">
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.position-x">Position X</span>
+					<input type="range" id="light-pos-x" min="-5" max="5" step="0.5" value="1.0">
 				</div>
 				<div class="setting switch-wrapper">
-					<span class="switch-text">Position Y</span>
-					<input type="range" id="light-pos-y" min="0" max="5" step="0.5" value="1.0">
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.position-y">Position Y</span>
+					<input type="range" id="light-pos-y" min="-5" max="5" step="0.5" value="1.0">
 				</div>
 				<div class="setting bottom switch-wrapper">
-					<span class="switch-text">Position Z</span>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.position-z">Position Z</span>
 					<input type="range" id="light-pos-z" min="-5" max="5" step="0.5" value="1.0">
 				</div>
 				<div class="setting top switch-wrapper">
-					<span class="switch-text">Brightness</span>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.brightness">Brightness</span>
 					<input type="range" id="light-intensity" min="0" max="6" step="0.5" value="3">
 				</div>
 				<div class="setting bottom switch-wrapper">
-					<span class="switch-text">Color</span>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.color">Color</span>
 					<input type="color" id="light-color" value="#ffffff">
 				</div>
 				<div class="setting bottom top switch-wrapper">
-					<span class="switch-text">Reset light</span>
-					<button class='text-button' id="resetLightBtn">Reset</button>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.reset-light">Reset light</span>
+					<button class='text-button' id="reset-light-btn" data-locale="app.sidebar.scene-tab.light.reset-light.reset">Reset</button>
 				</div>
 			</details>
-			<details open><summary>Background</summary>
+			<details open><summary data-locale="app.sidebar.scene-tab.background">Background</summary>
 				<div class="setting bottom top switch-wrapper">
-					<span class="switch-text">Color</span>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.color">Color</span>
 					<input type="color" id="background-color" value="#222222">
 				</div>
 				<div class="setting top">
-					<div id="skyboxButtons">
+					<div id="skybox-buttons">
 
 					</div>
 				</div>
 				<div class="setting switch-wrapper">
-					<span class="switch-text">Skybox blur</span>
-					<input type="range" id="skyboxBlurRange" min="0" max="1" step="0.05" value="0">
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.skybox-blur">Skybox blur</span>
+					<input type="range" id="skybox-blur-range" min="0" max="1" step="0.05" value="0">
 				</div>
 				<div class="setting bottom switch-wrapper">
-					<span class="switch-text">Skybox position</span>
-					<input type="range" id="skyboxRotationRange" min="0" max="360" step="1" value="180">
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.skybox-position">Skybox position</span>
+					<input type="range" id="skybox-rotation-range" min="0" max="360" step="1" value="180">
 				</div>
 				<div class="setting top switch-wrapper">
-					<span class="switch-text">Image</span>
-					<button class='text-button' id="setBackgroundImageBtn">Set Image</button>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.image">Image</span>
+					<button class='text-button' id="set-background-image-btn" data-locale="app.sidebar.scene-tab.background.image.set-image">Set Image</button>
 				</div>
 				<div class="setting bottom switch-wrapper">
-					<div>
-						<span class="switch-text">Light as background average color</span>
-						<span class="switch-description">Sets the scene light color as an average taken from the background image.</span>
-					</div>
-					<button class='text-button' id="setLightAsBgAvgBtn">Set Color</button>
+					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.light-color-as-background-average">Light color as background average</span>
+					<button class='text-button' id="setLightAsBgAvgBtn" data-locale="app.sidebar.scene-tab.background.light-color-as-background-average.set-color">Set Color</button>
 				</div>
 			</details>
 			
 		</div>
 		<div class="tab" id="tab-render">
-			<div class="setting top switch-wrapper">
-				<span class="switch-text">Materials</span>
-				<select name="renderMaterials" id="renderMaterials">
-					<option value="renderMaterialsMToon">VRM MToon</option>
-					<option value="renderMaterialsTexture">Texture</option>
-					<option value="renderMaterialsSolid">Solid</option>
-					<option value="renderMaterialsWireframe">Wireframe</option>
-					<option value="renderMaterialsFaceOrientation">Face orientation</option>
+			<div class="setting top bottom switch-wrapper">
+				<span class="switch-text" data-locale="app.sidebar.render-tab.view-mode">View mode</span>
+				<select name="render-materials" id="render-materials">
+					<option value="render-materials-mtoon" data-locale="app.sidebar.render-tab.view-mode.vrm-mtoon">VRM MToon</option>
+					<option value="render-materials-texture" data-locale="app.sidebar.render-tab.view-mode.texture">Texture</option>
+					<option value="render-materials-solid" data-locale="app.sidebar.render-tab.view-mode.solid">Solid</option>
+					<option value="render-materials-wireframe" data-locale="app.sidebar.render-tab.view-mode.wireframe">Wireframe</option>
+					<option value="render-materials-face-orientation" data-locale="app.sidebar.render-tab.view-mode.face-orientation">Face orientation</option>
 				</select>
 			</div>
 		</div>
 		<div class="tab-control">
 			<button class="tab-button" id="tab-btn-tab-model">
 				<span class="tab-icon">accessibility</span>
-				<span class="tab-label">Model</span>
+				<span class="tab-label" data-locale="app.sidebar.tab-control.model">Model</span>
 			</button>
 			<button class="tab-button" id="tab-btn-tab-scene">
 				<span class="tab-icon">landscape</span>
-				<span class="tab-label">Scene</span>
+				<span class="tab-label" data-locale="app.sidebar.tab-control.scene">Scene</span>
 			</button>
 			<button class="tab-button" id="tab-btn-tab-render">
 				<span class="tab-icon">photo_camera</span>
-				<span class="tab-label">Render</span>
+				<span class="tab-label" data-locale="app.sidebar.tab-control.render">Render</span>
 			</button>
 		</div>
 	</div>
+	<!-- #endregion SIDEBAR -->
 
+	<!-- #region MAIN -->
 	<div class="main-wrapper" id="mainWrapper" onclick="hideAllMenus();">
 		<header class="window-title">
-		<div class="header-left">
-			<button class="icon-button" translate="no" onmousedown="toggleSidebar('controls-bar')"
-				title="Toggle sidebar">side_navigation</button>
-		</div>
-		<div class="header-center">
-			
-		</div>
-		<div class="header-right">
-			<button class="icon-button" translate="no" id="playPauseBtn" title="Play / Pause animation (P)" disabled>play_arrow</button>
-			<button class="icon-button" translate="no" id="resetCameraBtn" title="Recenter (R)">reset_focus</button>
-		</div>
-	</header>
+			<div class="header-left">
+				<button class="icon-button" translate="no" onmousedown="toggleSidebar('controls-bar')" title="Toggle sidebar" data-locale-attr="title:app.main.header.toggle-sidebar">side_navigation</button>
+			</div>
+			<div class="header-center">
+				
+			</div>
+			<div class="header-right">
+				<button class="icon-button" translate="no" id="playPauseBtn" title="Play / Pause animation (P)" disabled data-locale-attr="title:app.main.header.play-pause-animation">play_arrow</button>
+				<button class="icon-button" translate="no" id="resetCameraBtn" title="Recenter (R)" data-locale-attr="title:app.main.header.recenter">reset_focus</button>
+			</div>
+		</header>
 	</div>
+	<!-- #endregion MAIN -->
 
 	<!-- hidden file input for Open model button -->
 	<input type="file" id="fileInput" accept=".vrm,.vrma" style="display:none" />
+	<!-- hidden file input for backgroud image button -->
 	<input type="file" id="backgroundImageFileInput" accept="image/*" style="display:none" />
 
 	<script src="script/settings.js"></script>
@@ -251,7 +252,7 @@
 		const mainWrapper = document.getElementById('mainWrapper');
 
 		const playPauseBtn = document.getElementById('playPauseBtn');
-		const stopBtn = document.getElementById('stopBtn');
+		const stopBtn = document.getElementById('stop-btn');
 
 		const vrmModelName = document.getElementById('vrm-model-name');
 		const vrmAuthorName = document.getElementById('vrm-author-name');
@@ -262,7 +263,7 @@
 		const modelInfoBtn = document.getElementById('modelInfoBtn');
 
 		// animation & pose selects
-		const animationSelect = document.getElementById('AnimationSlct');
+		const animationSelect = document.getElementById('animation-select');
 		const poseSelect = document.getElementById('PoseSlct');
 
 		// light
@@ -271,32 +272,51 @@
 		const lightPosZInput = document.getElementById('light-pos-z');
 		const lightIntensityInput = document.getElementById('light-intensity');
 		const lightColorInput = document.getElementById('light-color');
-		const resetLightBtn = document.getElementById('resetLightBtn');
+		const resetLightBtn = document.getElementById('reset-light-btn');
 		const setLightAsBgAvgBtn = document.getElementById('setLightAsBgAvgBtn');
 
 		// background
 		const backgroundColorInput = document.getElementById('background-color');
-		const setBackgroundImageBtn = document.getElementById('setBackgroundImageBtn');
+		const setBackgroundImageBtn = document.getElementById('set-background-image-btn');
 		const backgroundImageFileInput = document.getElementById('backgroundImageFileInput');
-		const skyboxRotationRange = document.getElementById('skyboxRotationRange');
-		const skyboxBlurRange = document.getElementById('skyboxBlurRange');
-		const fovRange = document.getElementById('fovRange');
+		const skyboxRotationRange = document.getElementById('skybox-rotation-range');
+		const skyboxBlurRange = document.getElementById('skybox-blur-range');
+		const fovRange = document.getElementById('fov-range');
 
 		// events
 		lightPosXInput.addEventListener('input', (e) => {
-			if (light) light.position.x = parseFloat(e.target.value);
+			if (light) {
+				light.position.x = parseFloat(e.target.value);
+				showLightMarker();
+			}
 		});
+
 		lightPosYInput.addEventListener('input', (e) => {
-			if (light) light.position.y = parseFloat(e.target.value);
+			if (light) {
+				light.position.y = parseFloat(e.target.value);
+				showLightMarker();
+			}
 		});
+
 		lightPosZInput.addEventListener('input', (e) => {
-			if (light) light.position.z = parseFloat(e.target.value);
+			if (light) {
+				light.position.z = parseFloat(e.target.value);
+				showLightMarker();
+			}
 		});
+
 		lightIntensityInput.addEventListener('input', (e) => {
-			if (light) light.intensity = parseFloat(e.target.value);
+			if (light) {
+				light.intensity = parseFloat(e.target.value);
+				showLightMarker();
+			}
 		});
+
 		lightColorInput.addEventListener('input', (e) => {
-			if (light) light.color = new THREE.Color(e.target.value);
+			if (light) {
+				light.color = new THREE.Color(e.target.value);
+				showLightMarker();
+			}
 		});
 		resetLightBtn.addEventListener('click', (e) => {
 			// reset light to default values
@@ -429,7 +449,7 @@
 				camera.updateProjectionMatrix();
 			}
 		});
-		const renderMaterialsSelect = document.getElementById('renderMaterials');
+		const renderMaterialsSelect = document.getElementById('render-materials');
 
 		renderMaterialsSelect.addEventListener('change', () => {
 			if (!currentVrm?.scene) return;
@@ -450,10 +470,10 @@
 					let newMat = null;
 
 					switch (mode) {
-						case 'renderMaterialsMToon':
+						case 'render-materials-mtoon':
 							return mat;
 
-						case 'renderMaterialsTexture':
+						case 'render-materials-texture':
 							return new THREE.MeshBasicMaterial({
 								map: mat.map || mat.baseMap || null,
 								transparent: true,
@@ -462,10 +482,10 @@
 								alphaTest: 0.001
 							});
 
-						case 'renderMaterialsSolid':
+						case 'render-materials-solid':
 							return new THREE.MeshNormalMaterial();
 
-						case 'renderMaterialsWireframe': {
+						case 'render-materials-wireframe': {
 							const color = getComputedStyle(document.body)
 								.getPropertyValue('--text-color')
 								.trim();
@@ -475,7 +495,7 @@
 							});
 						}
 
-						case 'renderMaterialsFaceOrientation': {
+						case 'render-materials-face-orientation': {
 							const cssGreen = getComputedStyle(document.body)
 								.getPropertyValue('--color-green')
 								.trim();
@@ -561,13 +581,14 @@
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.outputEncoding = THREE.sRGBEncoding; // Correct color space
+		renderer.domElement.className = "render"
 		mainWrapper.appendChild(renderer.domElement);
 
 		const camera = new THREE.PerspectiveCamera(30.0, window.innerWidth / window.innerHeight, 0.1, 20.0);
 		camera.position.set(0.0, 0.75, 4.0);
 		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 0.75, 4.0);
 		const DEFAULT_CONTROLS_TARGET = new THREE.Vector3(0.0, 1.0, 0.0);
-
+		
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.screenSpacePanning = true;
 		controls.target.copy(DEFAULT_CONTROLS_TARGET);
@@ -587,7 +608,7 @@
 		window.scene = scene;
 
 		const light = new THREE.DirectionalLight(0xffffff, 3.0); // Increased intensity
-		light.position.set(0.5, 1.0, 1.0).normalize();
+		light.position.set(1.0, 1.0, 1.0).normalize();
 		scene.add(light);
 
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0); // ambient light
@@ -1259,7 +1280,7 @@
 		function createLookControls() {
 			const joystick = document.getElementById('look_joystick');
 			const handle = document.getElementById('look_joystick_handle');
-			const followChk = document.getElementById('look_follow_camera');
+			const followChk = document.getElementById('look-follow-camera');
 			if (!joystick || !handle || !followChk) return;
 
 			let dragging = false;
@@ -1374,7 +1395,7 @@
 
 		function updateLookControl(delta) {
 			// priority: follow camera checkbox -> joystick
-			const follow = document.getElementById('look_follow_camera');
+			const follow = document.getElementById('look-follow-camera');
 			if (!currentVrm || !currentVrm.lookAt) return;
 			if (follow && follow.checked) {
 				// compute yaw/pitch towards camera from head bone
@@ -1400,13 +1421,13 @@
 			}
 		}
 
-		const resetLookBtn = document.getElementById('resetLookBtn');
+		const resetLookBtn = document.getElementById('reset-look-btn');
 		if (resetLookBtn) { resetLookBtn.addEventListener('click', resetLookControls); }
 
 		function resetLookControls() {
 			const joystick = document.getElementById('look_joystick');
 			const handle = document.getElementById('look_joystick_handle');
-			const followChk = document.getElementById('look_follow_camera');
+			const followChk = document.getElementById('look-follow-camera');
 			
 			if (!currentVrm || !currentVrm.lookAt) return;
 			currentVrm.lookAt.yaw = 0;
@@ -1441,11 +1462,11 @@
 			}
 		}
 
-		const resetExpressionBtn = document.getElementById('resetExpressionBtn');
+		const resetExpressionBtn = document.getElementById('reset-expression-btn');
 		if (resetExpressionBtn) { resetExpressionBtn.addEventListener('click', resetExpressionControls); }
 
 		function resetExpressionControls() {
-			const container = document.getElementById('blendShapeRanges');
+			const container = document.getElementById('blend-shape-ranges');
 			if (container) {
 				const inputs = container.querySelectorAll('input[type="range"]');
 				inputs.forEach(input => {
@@ -1561,36 +1582,31 @@
 				}
 			} else {
 				showToast('File not supported', 'error');
+				renderer.domElement.classList.add('drag-refuse');
+				setTimeout(() => {
+					renderer.domElement.classList.remove('drag-refuse');
+				}, 1000);
 			}
 		}
 
 		mainWrapper.addEventListener('dragover', (e) => {
 			e.preventDefault();
 			e.dataTransfer.dropEffect = 'copy';
-			const bodyBg = getComputedStyle(document.body).getPropertyValue('--color-blue-bg').trim();
-			const rootBg = getComputedStyle(document.documentElement).getPropertyValue('--color-blue-bg').trim();
-			const cssBg = bodyBg || rootBg || '#222222';
-			scene.background = new THREE.Color(cssBg);
+			renderer.domElement.classList.add('drag-over');
 		});
 
 		mainWrapper.addEventListener('dragleave', (e) => {
 			e.preventDefault();
-			const bodyBg = getComputedStyle(document.body).getPropertyValue('--background-color-2').trim();
-			const rootBg = getComputedStyle(document.documentElement).getPropertyValue('--background-color-2').trim();
-			const cssBg = bodyBg || rootBg || '#222222';
-			scene.background = new THREE.Color(cssBg);
+			renderer.domElement.classList.remove('drag-over');
 		});
 
 		mainWrapper.addEventListener('drop', async (e) => {
 			e.preventDefault();
+			renderer.domElement.classList.remove('drag-over');
 			const dt = e.dataTransfer;
 			if (!dt) return;
 			const file = dt.files && dt.files[0];
 			await handleFileDrop(file);
-			const bodyBg = getComputedStyle(document.body).getPropertyValue('--background-color-2').trim();
-			const rootBg = getComputedStyle(document.documentElement).getPropertyValue('--background-color-2').trim();
-			const cssBg = bodyBg || rootBg || '#222222';
-			scene.background = new THREE.Color(cssBg);
 		});
 
 		document.body.addEventListener('keydown', async (e) => {
@@ -1655,6 +1671,76 @@
 
 		// instantiate the ground shadow
 		groundShadow = createGroundShadow(1);
+
+		let lightMarker = null;
+		let lightMarkerTimeout = null;
+		let lightMarkerFadeRAF = null;
+
+		function createLightMarker() {
+			const geometry = new THREE.SphereGeometry(0.05, 24, 16);
+
+			const material = new THREE.MeshBasicMaterial({
+				color: 0xffffff,
+				transparent: true,
+				opacity: 0.0
+			});
+
+			const mesh = new THREE.Mesh(geometry, material);
+
+			// marker cant cast shadows
+			mesh.castShadow = false;
+			mesh.receiveShadow = false;
+
+			mesh.visible = false;
+			mesh.renderOrder = 999;
+
+			scene.add(mesh);
+			return mesh;
+		}
+
+		function showLightMarker() {
+			if (!light || !lightMarker) return;
+
+			// light position
+			lightMarker.position.copy(light.position);
+
+			// light color
+			lightMarker.material.color.copy(light.color);
+
+			lightMarker.visible = true;
+			lightMarker.material.opacity = 1.0;
+
+			// cancel previous fades
+			if (lightMarkerFadeRAF) {
+				cancelAnimationFrame(lightMarkerFadeRAF);
+				lightMarkerFadeRAF = null;
+			}
+			if (lightMarkerTimeout) {
+				clearTimeout(lightMarkerTimeout);
+			}
+
+			// wait 1 sec without alteration, and fade out
+			lightMarkerTimeout = setTimeout(() => {
+				const start = performance.now();
+				const duration = 500; // ms
+
+				function fade(now) {
+					const t = (now - start) / duration;
+					if (t >= 1) {
+						lightMarker.material.opacity = 0;
+						lightMarker.visible = false;
+						return;
+					}
+
+					lightMarker.material.opacity = 1 - t;
+					lightMarkerFadeRAF = requestAnimationFrame(fade);
+				}
+
+				lightMarkerFadeRAF = requestAnimationFrame(fade);
+			}, 1000);
+		}
+
+		lightMarker = createLightMarker();
 
 		// #endregion UI & Events
 
@@ -1728,10 +1814,10 @@
 		}
 
 		/**
-		 * Build and attach blend shape range controls into the blendShapeRanges content area.
+		 * Build and attach blend shape range controls into the blend-shape-ranges content area.
 		 */
 		function populateBlendShapeControls() {
-			const container = document.getElementById('blendShapeRanges')
+			const container = document.getElementById('blend-shape-ranges')
 			if (!container) return;
 			container.innerHTML = '';
 
@@ -1819,7 +1905,7 @@
 		// #region Materials
 		
 		function populateMaterials() {
-			const container = document.getElementById('materialsList');
+			const container = document.getElementById('materials-list');
 			if (!container) return;
 
 			container.innerHTML = '';
@@ -1990,7 +2076,7 @@
 			});
 		}
 		function populateSkyboxButtons() {
-			const container = document.getElementById('skyboxButtons');
+			const container = document.getElementById('skybox-buttons');
 			if (!container) return;
 
 			container.innerHTML = '';
@@ -2063,8 +2149,12 @@
 		// Load the fixed VRM model when the page loads
 		window.addEventListener('DOMContentLoaded', async () => {
 			// Try to restore a previously loaded VRM from localStorage.
-			const restored = await loadLastVrmFromStorage();
-			if (!restored) {
+			if (Settings.getSetting('rememberLastModel', 'true') == 'true') {
+				const restored = await loadLastVrmFromStorage();
+				if (!restored) {
+					await loadVRM(VRM_MODEL_URL, 'default.vrm');
+				}
+			} else {
 				await loadVRM(VRM_MODEL_URL, 'default.vrm');
 			}
 			await loadVRMA(VRMA_ANIMATIONS['Standard'], 'Standard.vrma');

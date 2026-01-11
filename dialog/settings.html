@@ -65,6 +65,17 @@
                         <a href="https://github.com/flarom/figure/wiki/Translating" class="infolink" data-locale="dialogs.settings.main.translating" target="_blank">Help translating Figure</a></span>
                     </div>
                 </div>
+
+                <div>
+                    <h4 class="setting-group-title">Data</h4>
+                    <div class="setting top bottom">
+                        <span class="switch-text">Remember last model</span>
+                        <label class="switch">
+                            <input type="checkbox" id="rememberLastModel" onchange="Settings.setSetting('rememberLastModel', this.checked)"/>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -74,9 +85,9 @@
                 const selLanguage = document.getElementById("language");
                 selLanguage.value = Settings.getSetting("language", 'en')
 
-                // status bar
-                const cbxStatusShow = document.getElementById("statusShow");
-                if (Settings.getSetting("statusShow", "true") === "true") cbxStatusShow.checked = "true";
+                // data
+                const checkRememberLastModel = document.getElementById('rememberLastModel');
+                if (Settings.getSetting('rememberLastModel', 'true') == 'true') checkRememberLastModel.checked = true;
             })();
 
             updateSelectedTheme();

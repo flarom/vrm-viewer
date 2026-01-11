@@ -27,6 +27,70 @@
             "common.no": "Não",
             "common.back": "Voltar"
         },
+        "APP": {
+            "SIDEBAR": {
+                "HEADER": {
+                    "app.sidebar.header.open-model": "Abrir modelo",
+                    "app.sidebar.header-more-menu.open-model": "Abrir modelo",
+                    "app.sidebar.header-more-menu.model-information": "Informações do modelo",
+                    "app.sidebar.header-more-menu.settings": "Configurações",
+                    "app.sidebar.header-more-menu.about-figure": "Sobre o Figure"
+                },
+                "TAB CONTROLLER": {
+                    "app.sidebar.tab-control.model": "Modelo",
+                    "app.sidebar.tab-control.scene": "Cena",
+                    "app.sidebar.tab-control.render": "Renderização"
+                },
+                "MODEL TAB": {
+                    "app.sidebar.model-tab.body": "Corpo",
+                    "app.sidebar.model-tab.body.animation": "Animação",
+                    "app.sidebar.model-tab.body.pose": "Pose",
+                    "app.sidebar.model-tab.body.reset-pose": "Resetar pose",
+                    "app.sidebar.model-tab.body.reset-pose.reset": "Resetar",
+                    "app.sidebar.model-tab.face": "Rosto",
+                    "app.sidebar.model-tab.face.look-at-camera": "Olhar para a câmera",
+                    "app.sidebar.model-tab.face.joystick-hint": "Arraste dentro da caixa para mirar os olhos.",
+                    "app.sidebar.model-tab.face.recenter-eyes": "Recentralizar olhos",
+                    "app.sidebar.model-tab.face.recenter-eyes.recenter": "Recentralizar",
+                    "app.sidebar.model-tab.face.clear-expressions": "Limpar todas expressões",
+                    "app.sidebar.model-tab.face.clear-expressions.reset": "Resetar",
+                    "app.sidebar.model-tab.materials": "Materiais"
+                },
+                "SCENE TAB": {
+                    "app.sidebar.scene-tab.camera": "Câmera",
+                    "app.sidebar.scene-tab.camera.fov": "Campo de visão",
+                    "app.sidebar.scene-tab.light": "Luz",
+                    "app.sidebar.scene-tab.light.position-x": "Posição X",
+                    "app.sidebar.scene-tab.light.position-y": "Posição Y",
+                    "app.sidebar.scene-tab.light.position-z": "Posição Z",
+                    "app.sidebar.scene-tab.light.brightness": "Brilho",
+                    "app.sidebar.scene-tab.light.color": "Cor",
+                    "app.sidebar.scene-tab.light.reset-light": "Resetar luz",
+                    "app.sidebar.scene-tab.light.reset-light.reset": "Resetar",
+                    "app.sidebar.scene-tab.background": "Fundo",
+                    "app.sidebar.scene-tab.background.color": "Cor",
+                    "app.sidebar.scene-tab.background.skybox-blur": "Borrar skybox",
+                    "app.sidebar.scene-tab.background.skybox-position": "Posição da skybox",
+                    "app.sidebar.scene-tab.background.image": "Imagem",
+                    "app.sidebar.scene-tab.background.image.set-image": "Definir imagem",
+                    "app.sidebar.scene-tab.background.light-color-as-background-average": "Cor da luz como média do fundo",
+                    "app.sidebar.scene-tab.background.light-color-as-background-average.set-color": "Definir cor"
+                },
+                "RENDER TAB": {
+                    "app.sidebar.render-tab.view-mode": "Modo de exibição",
+                    "app.sidebar.render-tab.view-mode.vrm-mtoon": "VRM MToon",
+                    "app.sidebar.render-tab.view-mode.texture": "Textura",
+                    "app.sidebar.render-tab.view-mode.solid": "Solido",
+                    "app.sidebar.render-tab.view-mode.wireframe": "Vértices",
+                    "app.sidebar.render-tab.view-mode.face-orientation": "Orientação das faces"
+                }
+            },
+            "MAIN": {
+                "app.main.header.toggle-sidebar": "Alternar barra lateral",
+                "app.main.header.play-pause-animation": "Tocar / Pausar animação (P)",
+                "app.main.header.recenter": "Recentralizar (R)"
+            }
+        },
         "DIALOGS": {
             "ABOUT": {
                 "dialogs.about.main.report-an-issue": "Relatar um problema",
@@ -50,6 +114,49 @@
                 "dialogs.settings.main.language": "Idioma",
                 "dialogs.settings.main.translating": "Ajude a traduzir o Figure",
                 "dialogs.settings.main.status-bar": "Barra de status"
+            },
+            "MODEL INFO": {
+                "VRM 0.0": {
+                    "dialogs.model-info.vrm0.avatar-information": "Informações do avatar",
+                    "dialogs.model-info.vrm0.avatar-information.title": "Título",
+                    "dialogs.model-info.vrm0.avatar-information.creator": "Criador(a)",
+                    "dialogs.model-info.vrm0.avatar-information.contact-information": "Informação de contato",
+                    "dialogs.model-info.vrm0.avatar-information.reference": "Referência",
+                    "dialogs.model-info.vrm0.avatar-information.version": "Versão",
+                    "dialogs.model-info.vrm0.avatar-information.vrm-version": "Versão do VRM",
+                    "dialogs.model-info.vrm0.avatar-personality": "Personalidade do avatar",
+                    "dialogs.model-info.vrm0.avatar-personality.allowed-user-name": "Nome de usuários permitidos",
+                    "dialogs.model-info.vrm0.avatar-personality.depictions-of-violence": "Representações de violência",
+                    "dialogs.model-info.vrm0.avatar-personality.depictions-of-sexual-acts": "Representações de atos sexuais",
+                    "dialogs.model-info.vrm0.avatar-personality.commercial-use": "Uso comercial",
+                    "dialogs.model-info.vrm0.avatar-personality.permission-information-url": "URL com informação de permissão de uso",
+                    "dialogs.model-info.vrm0.redistribution-and-alteration": "Redistribuição e alteração",
+                    "dialogs.model-info.vrm0.redistribution-and-alteration.license": "Licensa"
+                },
+                "VRM 1.0": {
+                    "dialogs.model-info.vrm1.avatar-information": "Informações do avatar",
+                    "dialogs.model-info.vrm1.avatar-information.avatar-name": "Nome do avatar",
+                    "dialogs.model-info.vrm1.avatar-information.version": "Versão",
+                    "dialogs.model-info.vrm1.avatar-information.authors": "Autores(as)",
+                    "dialogs.model-info.vrm1.avatar-information.creator-copyright": "Direitos autorais do criador",
+                    "dialogs.model-info.vrm1.avatar-information.contact-information": "Informação de contato",
+                    "dialogs.model-info.vrm1.avatar-information.references": "Referências",
+                    "dialogs.model-info.vrm1.avatar-information.third-party-licenses": "Licenças de terceiros",
+                    "dialogs.model-info.vrm1.avatar-permission": "Permissões do avatar",
+                    "dialogs.model-info.vrm1.avatar-permission.avatar-use-permission": "Permissão de uso do avatar",
+                    "dialogs.model-info.vrm1.avatar-permission.violent-usage": "Uso violento",
+                    "dialogs.model-info.vrm1.avatar-permission.sexual-usage": "Uso sexual",
+                    "dialogs.model-info.vrm1.avatar-permission.political-usage": "Uso político",
+                    "dialogs.model-info.vrm1.avatar-permission.antisocial-usage": "Uso antisocial",
+                    "dialogs.model-info.vrm1.avatar-permission.commercial-usage": "Uso comercial",
+                    "dialogs.model-info.vrm1.redistribution-and-alteration": "Redistribuição e alteração",
+                    "dialogs.model-info.vrm1.redistribution-and-alteration.redistribution": "Redistribuição",
+                    "dialogs.model-info.vrm1.redistribution-and-alteration.alterations": "Alterações",
+                    "dialogs.model-info.vrm1.redistribution-and-alteration.attribution": "Atribuição"
+                },
+                "VRM UNKNOWN": {
+                    "dialogs.model-info.vrm-unknown.version": "Versão"
+                }
             }
         }
     }

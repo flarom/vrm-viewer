@@ -826,13 +826,49 @@ button.danger:hover {
     border-radius: 32px;
     margin: 0;
     padding: 0;
-    border: 1px solid var(--border-light-color);
+    border: 0;
+    margin-left: 5px;
     box-shadow: var(--shadow-light);
     cursor: pointer;
+    overflow: hidden;
+    transition: border-radius .3s;
+}
+
+.skybox-button:hover {
+    border-radius: 8px;
 }
 
 .skybox-button img {
     width: 64px;
     height: 64px;
-    border-radius: 32px;
+}
+
+.render {
+    transition: filter .3s;
+}
+
+.render.drag-over {
+    filter: contrast(0.5) brightness(1.5);
+}
+
+.render.drag-refuse {
+    animation: drag-refuse 0.5s ease-in-out forwards;
+}
+
+@keyframes drag-refuse {
+    0% {
+        transform: translateX(10px);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    50% {
+        transform: translateX(10px);
+    }
+    75% {
+        transform: translateX(-10px);
+    }
+    100% {
+        transform: translateX(0px);
+    }
 }

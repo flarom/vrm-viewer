@@ -322,6 +322,7 @@ function promptMessage(htmlContent, showCloseButton = true, useBigDialog = false
         }
 
         overlay.addEventListener("keydown", onKeyDown);
+        I18n.applyWithin(overlay);
     });
 }
 
@@ -1253,13 +1254,15 @@ function showVRMMeta(vrm) {
     const table = document.createElement('table');
     table.style.width = '100%';
 
-    const addItem = (label, value) => {
+    const addItem = (label, value, dataLocale) => {
         const tr = document.createElement('tr');
         const tdLabel = document.createElement('td');
         tdLabel.style.fontWeight = 'bold';
         tdLabel.style.borderBottom = '1px solid var(--border-light-color)';
         tdLabel.style.padding = '6px 8px';
         tdLabel.textContent = label;
+        tdLabel.title = label;
+        tdLabel.dataset.locale = dataLocale;
         const tdValue = document.createElement('td');
         tdValue.style.borderBottom = '1px solid var(--border-light-color)';
         tdValue.style.padding = '6px 8px';
@@ -1269,12 +1272,13 @@ function showVRMMeta(vrm) {
         table.appendChild(tr);
     };
 
-    const addSubTitle = (title) => {
+    const addSubTitle = (title, dataLocale) => {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 2;
         td.style.textAlign = 'center';
         td.textContent = title;
+        td.dataset.locale = dataLocale;
         tr.appendChild(td);
         table.appendChild(tr);
     }
@@ -1284,49 +1288,49 @@ function showVRMMeta(vrm) {
 
     if (metaVersion == '0') {
         // VRM 0.x
-        addSubTitle('Avatar information');
-        addItem('Title', meta.title || 'N/A');
-        addItem('Creator', meta.author || 'N/A');
-        addItem('Contact Information', meta.contactInformation || 'N/A');
-        addItem('Reference', meta.reference || 'N/A');
-        addItem('Version', meta.version || 'N/A');
-        addItem('VRM version', meta.metaVersion || 'N/A');
+        addSubTitle('Avatar information', 'dialogs.model-info.vrm0.avatar-information');
+        addItem('Title', meta.title || 'N/A', 'dialogs.model-info.vrm0.avatar-information.title');
+        addItem('Creator', meta.author || 'N/A', 'dialogs.model-info.vrm0.avatar-information.creator');
+        addItem('Contact Information', meta.contactInformation || 'N/A', 'dialogs.model-info.vrm0.avatar-information.contact-information');
+        addItem('Reference', meta.reference || 'N/A', 'dialogs.model-info.vrm0.avatar-information.reference');
+        addItem('Version', meta.version || 'N/A', 'dialogs.model-info.vrm0.avatar-information.version');
+        addItem('VRM version', meta.metaVersion || 'N/A', "dialogs.model-info.vrm0.avatar-information.vrm-version");
         
-        addSubTitle('Avatar personality','');
-        addItem('Allowed User Name', meta.allowedUserName || 'N/A');
-        addItem('Depictions of violence', meta.violentUssageName || 'No');
-        addItem('Depictions of sexual acts', meta.sexualUssageName || 'No');
-        addItem('Commercial use', meta.commercialUssageName || 'No');
-        addItem('Permission information URL', meta.otherPermissionUrl || 'N/A');
+        addSubTitle('Avatar personality','dialogs.model-info.vrm0.avatar-personality');
+        addItem('Allowed User Name', meta.allowedUserName || 'N/A', 'dialogs.model-info.vrm0.avatar-personality.allowed-user-name');
+        addItem('Depictions of violence', meta.violentUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.depictions-of-violence');
+        addItem('Depictions of sexual acts', meta.sexualUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.depictions-of-sexual-acts');
+        addItem('Commercial use', meta.commercialUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.commercial-use');
+        addItem('Permission information URL', meta.otherPermissionUrl || 'N/A', 'dialogs.model-info.vrm0.avatar-personality.permission-information-url');
 
-        addSubTitle('Redistribution and alteration','');
-        addItem('License', meta.licenseName || 'N/A');
+        addSubTitle('Redistribution and alteration','dialogs.model-info.vrm0.redistribution-and-alteration');
+        addItem('License', meta.licenseName || 'N/A', 'dialogs.model-info.vrm0.redistribution-and-alteration.license');
     } else if (metaVersion == '1') {
         // VRM 1.x
-        addSubTitle('Avatar information');
-        addItem('Avatar name', meta.name || 'N/A');
-        addItem('Version', meta.version || 'N/A');
-        addItem('Authors', (meta.authors && meta.authors.length > 0) ? meta.authors.join(', ') : 'N/A');
-        addItem('Creator copyright', meta.copyrightInformation || 'N/A');
-        addItem('Contact Information', meta.contactInformation || 'N/A');
-        addItem('References', (meta.references && meta.references.length > 0) ? meta.references.join(', ') : 'N/A');
-        addItem('Third party licenses', meta.thirdPartyLicenses || 'N/A');
+        addSubTitle('Avatar information', 'dialogs.model-info.vrm1.avatar-information');
+        addItem('Avatar name', meta.name || 'N/A', 'dialogs.model-info.vrm1.avatar-information.avatar-name');
+        addItem('Version', meta.version || 'N/A', 'dialogs.model-info.vrm1.avatar-information.version');
+        addItem('Authors', (meta.authors && meta.authors.length > 0) ? meta.authors.join(', ') : 'N/A', 'dialogs.model-info.vrm1.avatar-information.authors');
+        addItem('Creator copyright', meta.copyrightInformation || 'N/A', 'dialogs.model-info.vrm1.avatar-information.creator-copyright');
+        addItem('Contact Information', meta.contactInformation || 'N/A', 'dialogs.model-info.vrm1.avatar-information.contact-information');
+        addItem('References', (meta.references && meta.references.length > 0) ? meta.references.join(', ') : 'N/A', 'dialogs.model-info.vrm1.avatar-information.references');
+        addItem('Third party licenses', meta.thirdPartyLicenses || 'N/A', 'dialogs.model-info.vrm1.avatar-information.third-party-licenses');
 
-        addSubTitle('Avatar permission');
-        addItem('Avatar use permission', meta.avatarPermission || 'N/A');
-        addItem('Violent usage', meta.allowExcessivelyViolentUsage ? 'Yes' : 'No');
-        addItem('Sexual usage', meta.allowExcessivelySexualUsage ? 'Yes' : 'No');
-        addItem('Political usage', meta.allowPoliticalOrReligiousUsage ? 'Yes' : 'No');
-        addItem('Antisocial usage', meta.allowAntisocialOrHateUsage ? 'Yes' : 'No');
-        addItem('Commercial usage', meta.commercialUsage || 'No');
+        addSubTitle('Avatar permission', 'dialogs.model-info.vrm1.avatar-permission');
+        addItem('Avatar use permission', meta.avatarPermission || 'N/A', 'dialogs.model-info.vrm1.avatar-permission.avatar-use-permission');
+        addItem('Violent usage', meta.allowExcessivelyViolentUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.violent-usage');
+        addItem('Sexual usage', meta.allowExcessivelySexualUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.sexual-usage');
+        addItem('Political usage', meta.allowPoliticalOrReligiousUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.political-usage');
+        addItem('Antisocial usage', meta.allowAntisocialOrHateUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.antisocial-usage');
+        addItem('Commercial usage', meta.commercialUsage || 'No', 'dialogs.model-info.vrm1.avatar-permission.commercial-usage');
 
-        addSubTitle('Redistribution and alteration');
-        addItem('Redistribution', meta.allowRedistribution ? 'Yes' : 'No');
-        addItem('Alterations', meta.modification || 'N/A');
-        addItem('Attribution', meta.creditNotation || 'N/A');
+        addSubTitle('Redistribution and alteration', 'dialogs.model-info.vrm1.redistribution-and-alteration');
+        addItem('Redistribution', meta.allowRedistribution ? 'Yes' : 'No', 'dialogs.model-info.vrm1.redistribution-and-alteration.redistribution');
+        addItem('Alterations', meta.modification || 'N/A', 'dialogs.model-info.vrm1.redistribution-and-alteration.alterations');
+        addItem('Attribution', meta.creditNotation || 'N/A', 'dialogs.model-info.vrm1.redistribution-and-alteration.attribution');
     } else {
         // Unknown version
-        addItem('VRM version', 'Unknown');
+        addItem('VRM version', 'Unknown', 'dialogs.model-info.vrm-unknown.version');
     }
 
     promptMessage(table.outerHTML, true, false);
