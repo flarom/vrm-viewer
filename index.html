@@ -2232,24 +2232,6 @@
 			}
 
 			renderer.xr.setSession(session);
-
-			session.addEventListener('select', () => {
-				if (!arReticle || !arReticle.visible || !currentVrm || arPlaced) return;
-
-				// place VRM at hit-test position
-				currentVrm.scene.position.setFromMatrixPosition(arReticle.matrix);
-
-				// rotate VRM to face the camera
-				const cam = renderer.xr.getCamera(camera);
-				const dir = new THREE.Vector3()
-					.subVectors(cam.position, currentVrm.scene.position)
-					.normalize();
-
-				currentVrm.scene.rotation.y = Math.atan2(dir.x, dir.z);
-
-				arPlaced = true;
-			});
-
 			camera.matrixAutoUpdate = false;
 
 			arPlaced = false;
@@ -2298,6 +2280,26 @@
 				showToast('AR off', 'info');
 			});
 		}
+
+		renderer.domElement.addEventListener('click', () => {
+			if (!arReticle || !arReticle.visible || !currentVrm || arPlaced) return;
+
+			alert('passed checks')
+
+			currentVrm.scene.position.setFromMatrixPosition(arReticle.matrix);
+
+			alert('updated scene position')
+
+			const cam = renderer.xr.getCamera(camera);
+			const dir = new THREE.Vector3()
+				.subVectors(cam.position, currentVrm.scene.position)
+				.normalize();
+
+			currentVrm.scene.rotation.y = Math.atan2(dir.x, dir.z);
+			arPlaced = true;
+
+			alert('moved')
+		});
 
 		document.getElementById('enterARBtn')?.addEventListener('click', initAR);
 		// #endregion AUGMENTED REALITY
