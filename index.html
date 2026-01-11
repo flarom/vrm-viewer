@@ -213,6 +213,7 @@
 				
 			</div>
 			<div class="header-right">
+				<button id="enterARBtn" class="icon-button">view_in_ar</button>
 				<button class="icon-button" translate="no" id="playPauseBtn" title="Play / Pause animation (P)" disabled data-locale-attr="title:app.main.header.play-pause-animation">play_arrow</button>
 				<button class="icon-button" translate="no" id="resetCameraBtn" title="Recenter (R)" data-locale-attr="title:app.main.header.recenter">reset_focus</button>
 			</div>
@@ -577,7 +578,7 @@
 
 		// #region Three.js Setup
 		// --- Three.js Setup ---
-		let renderer = new THREE.WebGLRenderer({ antialias: true });
+		const renderer = new THREE.WebGLRenderer({ antialias: true });
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.outputEncoding = THREE.sRGBEncoding; // Correct color space
@@ -2177,6 +2178,68 @@
 
 		// 	console.log('Spring jump applied');
 		// });
+
+		// #region AUGMENTED REALITY
+		async function initAR() {
+			if (!navigator.xr) {
+				showToast('WebXR is not supported', 'error');
+				return;
+			}
+
+			const supported = await navigator.xr.isSessionSupported('immersive-ar');
+			if (!supported) {
+				showToast('Device is not supported', 'error');
+				return;
+			}
+
+			// config renderer for AR
+			renderer.xr.enabled = true;
+			renderer.setClearAlpha(0);
+			renderer.xr.setReferenceSpaceType('local-floor');
+
+			let session;
+			try {
+				session = await navigator.xr.requestSession('immersive-ar', {
+					requiredFeatures: ['local-floor'],
+					optionalFeatures: ['hit-test']
+				});
+			} catch (err) {
+				console.error('Failed to start AR session:', err);
+				showToast('Failed to start AR', 'error');
+				return;
+			}
+
+			renderer.xr.setSession(session);
+
+			// camera controls XR
+			camera.matrixAutoUpdate = false;
+
+			showToast('AR on', 'camera');
+
+			placeVrmInFrontOfCamera();
+
+			// cleanup leaving AR
+			session.addEventListener('end', () => {
+				camera.matrixAutoUpdate = true;
+				showToast('AR off', 'info');
+			});
+		}
+
+		function placeVrmInFrontOfCamera(distance = 1.2) {
+			if (!currentVrm) return;
+
+			const cam = renderer.xr.getCamera(camera);
+
+			const dir = new THREE.Vector3(0, 0, -1)
+				.applyQuaternion(cam.quaternion);
+
+			const pos = cam.position.clone().add(dir.multiplyScalar(distance));
+
+			currentVrm.scene.position.copy(pos);
+		}
+
+		document.getElementById('enterARBtn')?.addEventListener('click', initAR);
+		// #endregion
 
 	</script>
 
