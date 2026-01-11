@@ -2203,14 +2203,6 @@
 			return mesh;
 		}
 
-		arReticle = createARReticle();
-
-		const referenceSpace = await session.requestReferenceSpace('local');
-		const viewerSpace = await session.requestReferenceSpace('viewer');
-
-		hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-		xrRefSpace = referenceSpace;
-
 		async function initAR() {
 			if (!navigator.xr) {
 				showToast('WebXR não suportado', 'error');
@@ -2245,22 +2237,22 @@
 			arPlaced = false;
 			arReticle = createARReticle();
 
-			// reference spaces
 			const referenceSpace = await session.requestReferenceSpace('local');
 			const viewerSpace = await session.requestReferenceSpace('viewer');
 
-			hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+			hitTestSource = await session.requestHitTestSource({
+				space: viewerSpace
+			});
 			xrRefSpace = referenceSpace;
 
 			showToast('AR ativado', 'camera');
 
-			// render loop XR
 			renderer.setAnimationLoop((time, frame) => {
 				if (frame && hitTestSource) {
-					const hitTestResults = frame.getHitTestResults(hitTestSource);
+					const hitResults = frame.getHitTestResults(hitTestSource);
 
-					if (hitTestResults.length > 0) {
-						const hit = hitTestResults[0];
+					if (hitResults.length > 0) {
+						const hit = hitResults[0];
 						const pose = hit.getPose(xrRefSpace);
 
 						arReticle.visible = true;
@@ -2273,7 +2265,6 @@
 				renderer.render(scene, camera);
 			});
 
-			// cleanup ao sair do AR
 			session.addEventListener('end', () => {
 				camera.matrixAutoUpdate = true;
 				renderer.setAnimationLoop(null);
@@ -2293,20 +2284,17 @@
 		renderer.domElement.addEventListener('click', () => {
 			if (!arReticle || !arReticle.visible || !currentVrm || arPlaced) return;
 
-			// posição do chão
 			currentVrm.scene.position.setFromMatrixPosition(arReticle.matrix);
 
-			// virar para a câmera
 			const cam = renderer.xr.getCamera(camera);
 			const dir = new THREE.Vector3()
 				.subVectors(cam.position, currentVrm.scene.position)
 				.normalize();
 
-			const angle = Math.atan2(dir.x, dir.z);
-			currentVrm.scene.rotation.y = angle;
-
+			currentVrm.scene.rotation.y = Math.atan2(dir.x, dir.z);
 			arPlaced = true;
 		});
+
 
 		document.getElementById('enterARBtn')?.addEventListener('click', initAR);
 		// #endregion
