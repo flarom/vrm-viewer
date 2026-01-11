@@ -2189,7 +2189,7 @@
 		function createARReticle() {
 			const geometry = new THREE.RingGeometry(0.08, 0.12, 32).rotateX(-Math.PI / 2);
 			const material = new THREE.MeshBasicMaterial({
-				color: 0x00ffcc,
+				color: 0x3584e4,
 				transparent: true,
 				opacity: 0.8
 			});
@@ -2205,13 +2205,13 @@
 
 		async function initAR() {
 			if (!navigator.xr) {
-				showToast('WebXR não suportado', 'error');
+				showToast('WebXR not supported', 'error');
 				return;
 			}
 
 			const supported = await navigator.xr.isSessionSupported('immersive-ar');
 			if (!supported) {
-				showToast('AR não disponível neste dispositivo', 'error');
+				showToast('Device not supported', 'error');
 				return;
 			}
 
@@ -2227,11 +2227,29 @@
 				});
 			} catch (err) {
 				console.error(err);
-				showToast('Falha ao iniciar AR', 'error');
+				showToast('Error initializing AR', 'error');
 				return;
 			}
 
 			renderer.xr.setSession(session);
+
+			session.addEventListener('select', () => {
+				if (!arReticle || !arReticle.visible || !currentVrm || arPlaced) return;
+
+				// place VRM at hit-test position
+				currentVrm.scene.position.setFromMatrixPosition(arReticle.matrix);
+
+				// rotate VRM to face the camera
+				const cam = renderer.xr.getCamera(camera);
+				const dir = new THREE.Vector3()
+					.subVectors(cam.position, currentVrm.scene.position)
+					.normalize();
+
+				currentVrm.scene.rotation.y = Math.atan2(dir.x, dir.z);
+
+				arPlaced = true;
+			});
+
 			camera.matrixAutoUpdate = false;
 
 			arPlaced = false;
@@ -2245,7 +2263,7 @@
 			});
 			xrRefSpace = referenceSpace;
 
-			showToast('AR ativado', 'camera');
+			showToast('AR on', 'camera');
 
 			renderer.setAnimationLoop((time, frame) => {
 				if (frame && hitTestSource) {
@@ -2277,27 +2295,12 @@
 				hitTestSource = null;
 				xrRefSpace = null;
 
-				showToast('AR desligado', 'info');
+				showToast('AR off', 'info');
 			});
 		}
 
-		renderer.domElement.addEventListener('click', () => {
-			if (!arReticle || !arReticle.visible || !currentVrm || arPlaced) return;
-
-			currentVrm.scene.position.setFromMatrixPosition(arReticle.matrix);
-
-			const cam = renderer.xr.getCamera(camera);
-			const dir = new THREE.Vector3()
-				.subVectors(cam.position, currentVrm.scene.position)
-				.normalize();
-
-			currentVrm.scene.rotation.y = Math.atan2(dir.x, dir.z);
-			arPlaced = true;
-		});
-
-
 		document.getElementById('enterARBtn')?.addEventListener('click', initAR);
-		// #endregion
+		// #endregion AUGMENTED REALITY
 
 	</script>
 
