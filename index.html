@@ -847,17 +847,7 @@
 			'Shoot'          : './VRMA/VRoid Project/Shoot.vrma',
 			'Spin'           : './VRMA/VRoid Project/Spin.vrma',
 			'Model Pose'     : './VRMA/VRoid Project/ModelPose.vrma',
-			'Squat'          : './VRMA/VRoid Project/Squat.vrma',
-
-			'Standard'       : './VRMA/VRoid Hub/Standard.vrma',
-			'Innocent'       : './VRMA/VRoid Hub/Innocent.vrma',
-			'Cool'           : './VRMA/VRoid Hub/Cool.vrma',
-			'Ladylike'       : './VRMA/VRoid Hub/Ladylike.vrma',
-			'Shy'            : './VRMA/VRoid Hub/Shy.vrma',
-			'Energetic'      : './VRMA/VRoid Hub/Energetic.vrma',
-			'Flamboyant'     : './VRMA/VRoid Hub/Flamboyant.vrma',
-			'Gentleman'      : './VRMA/VRoid Hub/Gentleman.vrma',
-			'Powerful'       : './VRMA/VRoid Hub/Powerful.vrma'
+			'Squat'          : './VRMA/VRoid Project/Squat.vrma'
 		};
 
 		// Separate dictionary for single-frame poses (kept separate for organization)
@@ -2158,8 +2148,8 @@
 			} else {
 				await loadVRM(VRM_MODEL_URL, 'default.vrm');
 			}
-			await loadVRMA(VRMA_ANIMATIONS['Standard'], 'Standard.vrma');
-			if (animationSelect) animationSelect.value = 'Standard';
+			await loadVRMA(VRMA_ANIMATIONS['Show Full Body'], 'ShowFullBody.vrma');
+			if (animationSelect) animationSelect.value = 'Show Full Body';
 			updateButtons(); // Update button states after VRM is loaded
 			if (!isMobile()) document.getElementById('controls-bar').classList.add('show');
 		});
