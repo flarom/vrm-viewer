@@ -212,7 +212,7 @@
 
 	<!-- #region MAIN -->
 	<div class="main-wrapper" id="mainWrapper" onclick="hideAllMenus();">
-		<header class="window-title">
+		<header class="window-title" id='ar-ui'>
 			<div class="header-left">
 				<button class="icon-button" translate="no" onmousedown="toggleSidebar('controls-bar')" title="Toggle sidebar" data-locale-attr="title:app.main.header.toggle-sidebar">side_navigation</button>
 				<button class="icon-button" translate="no" id="photo-btn">photo_camera</button>
@@ -2357,7 +2357,10 @@
 			try {
 				session = await navigator.xr.requestSession('immersive-ar', {
 					requiredFeatures: ['local-floor'],
-					optionalFeatures: ['hit-test']
+					optionalFeatures: ['hit-test'],
+					domOverlay: {
+						root: document.getElementById('ar-ui')
+					}
 				});
 			} catch (err) {
 				console.error(err);
