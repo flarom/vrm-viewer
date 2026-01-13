@@ -212,10 +212,9 @@
 
 	<!-- #region MAIN -->
 	<div class="main-wrapper" id="mainWrapper" onclick="hideAllMenus();">
-		<header class="window-title" id='ar-ui'>
+		<header class="window-title">
 			<div class="header-left">
 				<button class="icon-button" translate="no" onmousedown="toggleSidebar('controls-bar')" title="Toggle sidebar" data-locale-attr="title:app.main.header.toggle-sidebar">side_navigation</button>
-				<button class="icon-button" translate="no" id="photo-btn">photo_camera</button>
 			</div>
 			<div class="header-center">
 				
@@ -226,6 +225,10 @@
 				<button class="icon-button" translate="no" id="resetCameraBtn" title="Recenter (R)" data-locale-attr="title:app.main.header.recenter">reset_focus</button>
 			</div>
 		</header>
+		
+		<footer class="camera-ui" id="camera-ui">
+			<button class="camera-button" translate="no" id="photo-btn" aria-label="Take photo"></button>
+		</footer>
 	</div>
 	<!-- #endregion MAIN -->
 
@@ -2359,8 +2362,8 @@
 					requiredFeatures: ['local-floor'],
 					optionalFeatures: ['hit-test'],
 					domOverlay: {
-						root: document.getElementById('ar-ui')
-					}
+						root: document.getElementById("camera-ui"),
+					},
 				});
 			} catch (err) {
 				console.error(err);
