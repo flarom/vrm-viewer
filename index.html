@@ -215,6 +215,7 @@
 		<header class="window-title">
 			<div class="header-left">
 				<button class="icon-button" translate="no" onmousedown="toggleSidebar('controls-bar')" title="Toggle sidebar" data-locale-attr="title:app.main.header.toggle-sidebar">side_navigation</button>
+				<button class="icon-button" translate="no" id="photo-btn">photo_camera</button>
 			</div>
 			<div class="header-center">
 				
@@ -238,15 +239,15 @@
 	<script src="script/i18n.js"></script>
 
 	<script type="importmap">
-			{
-				"imports": {
-					"three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js",
-					"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/",
-					"@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.min.js",
-					"@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.min.js"
-				}
+		{
+			"imports": {
+				"three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js",
+				"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/",
+				"@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.min.js",
+				"@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.min.js"
 			}
-		</script>
+		}
+	</script>
 
 	<script type="module">
 		import * as THREE from 'three';
@@ -852,6 +853,7 @@
 			// 'Sleepy'      : './VRMA/tk256ailab/Sleepy.vrma',
 			// 'Surprised'   : './VRMA/tk256ailab/Surprised.vrma',
 			// 'Thinking'    : './VRMA/tk256ailab/Thinking.vrma',
+			'Walk'           : './VRMA/flarom/walk.vrma',
 			'Show Full Body' : './VRMA/VRoid Project/ShowFullBody.vrma',
 			'Greeting'       : './VRMA/VRoid Project/Greeting.vrma',
 			'Peace Sign'     : './VRMA/VRoid Project/PeaceSign.vrma',
@@ -1611,24 +1613,80 @@
 			await handleFileDrop(file);
 		});
 
+		// #region KEYBOARD SHORTCUTS
+		function hasRendererFocus(rendererEl = renderer.domElement) {
+			const active = document.activeElement;
+
+			// canvas focused
+			if (active === rendererEl) return true;
+
+			// no focus on body/html
+			if (
+				active === document.body ||
+				active === document.documentElement
+			) return true;
+
+			return false;
+		}
+
+		function isTyping() {
+			const el = document.activeElement;
+			if (!el) return false;
+
+			return (
+				el.tagName === 'INPUT' ||
+				el.tagName === 'TEXTAREA' ||
+				el.isContentEditable
+			);
+		}
+
 		document.body.addEventListener('keydown', async (e) => {
-			if (e.key == 'r') {
-				smoothResetCamera(600);
+			// avoid key spam
+			if (e.repeat) return;
+
+			// global shortcuts
+			//// show about dialog
+			if (e.key === 'F1') {
+				e.preventDefault();
+				showMessageFromFile('dialog/about.html');
+				closeAllDialogs();
+				hideAllMenus();
+				return;
 			}
-			if (e.key == 'p') {
+
+			//// show settings dialog
+			if (e.key === ',' && e.ctrlKey) {
+				e.preventDefault();
+				showMessageFromFile('dialog/settings.html');
+				closeAllDialogs();
+				hideAllMenus();
+				return;
+			}
+
+			if (isTyping()) return; // if user is typing, avoid character shortcuts
+			if (!hasRendererFocus()) return; // single character shortcuts require the renderer to be focused
+
+			//// recenter camera
+			if (e.key === 'r') {
+				e.preventDefault();
+				smoothResetCamera(600);
+				return;
+			}
+
+			//// pause
+			if (e.key === 'p' || e.key === ' ') {
+				e.preventDefault();
 				togglePlayPause();
+
 				if (currentAction && currentAction.paused) {
 					showToast('Animation paused', 'pause');
 				} else {
 					showToast('Animation playing', 'play_arrow');
 				}
-			}
-			if (e.key == 'F1') {
-				showMessageFromFile('dialog/about.html');
-				closeAllDialogs();
-				hideAllMenus();
+				return;
 			}
 		});
+		// #endregion KEYBOARD SHORTCUTS
 
 		// --- Helpers ---
 		// const gridHelper = new THREE.GridHelper(10, 10);
@@ -2380,6 +2438,74 @@
 		document.getElementById('enterARBtn')?.addEventListener('click', initAR);
 		// #endregion AUGMENTED REALITY
 
+		// #region PHOTO
+		const photoBtn = document.getElementById('photo-btn');
+
+		photoBtn.addEventListener('click', () => {
+			captureCanvasImage({transparent: false})
+		});
+
+		function captureCanvasImage({ transparent = false } = {}) {
+			if (!renderer || !scene || !camera) return;
+
+			const prevClearAlpha = renderer.getClearAlpha();
+			const prevClearColor = renderer.getClearColor(new THREE.Color());
+			const prevBackground = scene.background;
+
+			// bg setup
+			if (transparent) {
+				scene.background = null;
+				renderer.setClearAlpha(0);
+			} else {
+				renderer.setClearAlpha(1);
+			}
+
+			// force render 
+			renderer.render(scene, camera);
+
+			// get image
+			const canvas = renderer.domElement;
+			const fullImageDataURL = canvas.toDataURL('image/png');
+
+			// resume
+			scene.background = prevBackground;
+			renderer.setClearColor(prevClearColor, prevClearAlpha);
+
+			// show dialog
+			showCapturedImageDialog(fullImageDataURL, {
+				transparent
+			});
+		}
+
+		function showCapturedImageDialog(imageDataURL, { transparent = false } = {}) {
+			const img = document.createElement('img');
+			img.src = imageDataURL;
+			img.style.maxWidth = '100%';
+			img.style.maxHeight = '100%';
+			img.style.display = 'block';
+			img.style.margin = '0 auto';
+			img.title = transparent
+				? 'Screenshot (transparent background)'
+				: 'Screenshot';
+
+			const fileName = transparent
+				? 'screenshot-transparent'
+				: 'screenshot';
+
+			const toolbarLeft = `
+				<button class="icon-button" title="Download" onclick="
+					const a = document.createElement('a');
+					a.href='${imageDataURL}';
+					a.download='${fileName}.png';
+					a.click();
+				">
+					Download
+				</button>
+			`;
+
+			promptMessage(img.outerHTML, true, false, toolbarLeft);
+		}
+		// #endregion PHOTO
 	</script>
 
 	<script>
