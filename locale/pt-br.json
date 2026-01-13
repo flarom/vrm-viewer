@@ -34,7 +34,11 @@
                     "app.sidebar.header-more-menu.open-model": "Abrir modelo",
                     "app.sidebar.header-more-menu.model-information": "Informações do modelo",
                     "app.sidebar.header-more-menu.settings": "Configurações",
+                    "app.sidebar.header-more-menu.fullscreen": "Tela cheia",
                     "app.sidebar.header-more-menu.about-figure": "Sobre o Figure"
+                },
+                "FOOTER": {
+                    "app.main.footer.take-photo": "Tirar foto"
                 },
                 "TAB CONTROLLER": {
                     "app.sidebar.tab-control.model": "Modelo",

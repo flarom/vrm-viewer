@@ -56,6 +56,10 @@
 							<span data-locale="app.sidebar.header-more-menu.settings">Settings</span>
 							<kbd>Ctrl+,</kbd>
 						</button>
+						<button class="text-button" onmouseup="document.body.requestFullscreen();">
+							<span data-locale="app.sidebar.header-more-menu.fullscreen">Fullscreen</span>
+							<kbd>F11</kbd>
+						</button>
 						<hr>
 						<button class="text-button" onmouseup="showMessageFromFile('dialog/about.html'); hideAllMenus()">
 							<span data-locale="app.sidebar.header-more-menu.about-figure">About Figure</span>
@@ -227,7 +231,7 @@
 		</header>
 		
 		<footer class="camera-ui" id="camera-ui">
-			<button class="camera-button" translate="no" id="photo-btn" aria-label="Take photo"></button>
+			<button class="camera-button" translate="no" id="photo-btn" data-locale-attr="title:app.main.footer.take-photo" title="Take photo"></button>
 		</footer>
 	</div>
 	<!-- #endregion MAIN -->
