@@ -88,6 +88,13 @@
 						<span class="slider"></span>
 					</label>
 				</div>
+				<div class="setting switch-wrapper">
+					<span class="switch-text" data-locale="app.sidebar.model-tab.face.blink">Blink</span>
+					<label class="switch">
+						<input type="checkbox" id="blink" />
+						<span class="slider"></span>
+					</label>
+				</div>
 				<div class="setting bottom">
 					<div id="look_joystick" class="joystick-container" style="touch-action:none;">
 						<div id="look_joystick_handle" class="joystick-handle"></div>
@@ -266,6 +273,10 @@
 		// animation & pose selects
 		const animationSelect = document.getElementById('animation-select');
 		const poseSelect = document.getElementById('PoseSlct');
+		const blinkCbx = document.getElementById('blink');
+		let blinkEnabled = false;
+		let blinkTimeout = null;
+		let blinkAnimating = false;
 
 		// light
 		const lightPosXInput = document.getElementById('light-pos-x');
@@ -1803,6 +1814,81 @@
 
 			return result.concat(custom);
 		}
+
+		// auto blink
+		function setBlink(value) {
+			if (!currentVrm?.expressionManager) return;
+			currentVrm.expressionManager.setValue('blink', value);
+		}
+
+		function playBlink({ double = false } = {}) {
+			if (!blinkEnabled || blinkAnimating || !currentVrm) return;
+
+			blinkAnimating = true;
+
+			const duration = 120 + Math.random() * 80; // ms
+			const start = performance.now();
+
+			function animate(now) {
+				const t = Math.min((now - start) / duration, 1);
+
+				let blinkValue;
+				if (t < 0.25) {
+					// fast close
+					blinkValue = t / 0.25;
+				} else {
+					// slow open
+					const k = (t - 0.25) / 0.75;
+					blinkValue = 1 - (k * k);
+				}
+
+				setBlink(blinkValue);
+
+				if (t < 1) {
+					requestAnimationFrame(animate);
+				} else {
+					setBlink(0);
+
+					if (double) {
+						// second blink shortly after
+						setTimeout(() => {
+							blinkAnimating = false;
+							playBlink({ double: false });
+						}, 80 + Math.random() * 60);
+					} else {
+						blinkAnimating = false;
+					}
+				}
+			}
+
+			requestAnimationFrame(animate);
+		}
+
+		function scheduleNextBlink() {
+			if (!blinkEnabled) return;
+
+			const interval =
+				2000 + Math.random() * 4000; // between 2 and 6 sec
+
+			blinkTimeout = setTimeout(() => {
+				const doubleBlinkChance = Math.random() < 0.2; // 20% chance to blink twice in a row
+				playBlink({ double: doubleBlinkChance });
+				scheduleNextBlink();
+			}, interval);
+		}
+
+		blinkCbx.addEventListener('change', () => {
+			blinkEnabled = blinkCbx.checked;
+
+			if (blinkEnabled) {
+				scheduleNextBlink();
+			} else {
+				clearTimeout(blinkTimeout);
+				blinkTimeout = null;
+				blinkAnimating = false;
+				setBlink(0);
+			}
+		});
 
 		/**
 		 * Build and attach blend shape range controls into the blend-shape-ranges content area.

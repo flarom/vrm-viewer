@@ -49,6 +49,7 @@
                     "app.sidebar.model-tab.body.reset-pose.reset": "Resetar",
                     "app.sidebar.model-tab.face": "Rosto",
                     "app.sidebar.model-tab.face.look-at-camera": "Olhar para a câmera",
+                    "app.sidebar.model-tab.face.blink": "Piscar",
                     "app.sidebar.model-tab.face.joystick-hint": "Arraste dentro da caixa para mirar os olhos.",
                     "app.sidebar.model-tab.face.recenter-eyes": "Recentralizar olhos",
                     "app.sidebar.model-tab.face.recenter-eyes.recenter": "Recentralizar",
