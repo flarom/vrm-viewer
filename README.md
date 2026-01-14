@@ -1,4 +1,4 @@
-**[English](README.md)** | [Português](README-pt_BR.md) | [日本語](README-jp.md)
+**English** | [Português](README-pt_BR.md) | [日本語](README-jp.md)
 
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/flarom/figure/1d95b2e3b251ad1b5458bb3e09293b766b78da48/static/favicon.svg" align="center" height="128px" width="128px">
@@ -35,3 +35,4 @@ python3 -m http.server
 ## License
 
 This project uses the [GNU Public License](https://www.gnu.org/licenses/gpl-3.0.html). And is a fork of [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main), that uses the [MIT](https://mit-license.org/) license.
+
