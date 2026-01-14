@@ -76,8 +76,6 @@
                     "app.sidebar.scene-tab.background.color": "Cor",
                     "app.sidebar.scene-tab.background.skybox-blur": "Borrar skybox",
                     "app.sidebar.scene-tab.background.skybox-position": "Posição da skybox",
-                    "app.sidebar.scene-tab.background.image": "Imagem",
-                    "app.sidebar.scene-tab.background.image.set-image": "Definir imagem",
                     "app.sidebar.scene-tab.background.light-color-as-background-average": "Cor da luz como média do fundo",
                     "app.sidebar.scene-tab.background.light-color-as-background-average.set-color": "Definir cor"
                 },

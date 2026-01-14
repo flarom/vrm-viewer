@@ -163,7 +163,7 @@
 				</div>
 				<div class="setting top">
 					<div id="skybox-buttons">
-
+						<button class='icon-button custom-skybox-button' id="set-background-image-btn">upload</button>
 					</div>
 				</div>
 				<div class="setting switch-wrapper">
@@ -174,11 +174,7 @@
 					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.skybox-position">Skybox position</span>
 					<input type="range" id="skybox-rotation-range" min="0" max="360" step="1" value="180">
 				</div>
-				<div class="setting top switch-wrapper">
-					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.image">Image</span>
-					<button class='text-button' id="set-background-image-btn" data-locale="app.sidebar.scene-tab.background.image.set-image">Set Image</button>
-				</div>
-				<div class="setting bottom switch-wrapper">
+				<div class="setting top bottom switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.scene-tab.background.light-color-as-background-average">Light color as background average</span>
 					<button class='text-button' id="setLightAsBgAvgBtn" data-locale="app.sidebar.scene-tab.background.light-color-as-background-average.set-color">Set Color</button>
 				</div>
@@ -262,6 +258,9 @@
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 		import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 		import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
+		import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+		import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+		import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 		// #region DOM Elements
 		// DOM elements
@@ -435,22 +434,34 @@
 			e.preventDefault();
 			backgroundImageFileInput.click();
 		});
-		backgroundImageFileInput.addEventListener('change', async (ev) => {
+		
+		backgroundImageFileInput.addEventListener('change', (ev) => {
 			const f = ev.target.files && ev.target.files[0];
-			if (f) {
-				const url = URL.createObjectURL(f);
-				const loader = new THREE.TextureLoader();
-				loader.load(url, (texture) => {
-					texture.colorSpace = THREE.SRGBColorSpace;
-					texture.flipY = true;
+			if (!f) return;
 
-					if (scene) scene.background = texture;
+			const url = URL.createObjectURL(f);
 
-					URL.revokeObjectURL(url);
-				});
-			}
-			backgroundImageFileInput.value = ''; // reset
+			const loader = new THREE.TextureLoader();
+			loader.load(url, (texture) => {
+				texture.colorSpace = THREE.SRGBColorSpace;
+				texture.mapping = THREE.EquirectangularReflectionMapping;
+				texture.flipY = true;
+
+				scene.background = texture;
+
+				const pmremGenerator = new THREE.PMREMGenerator(renderer);
+				pmremGenerator.compileEquirectangularShader();
+
+				const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+				scene.environment = envMap;
+
+				pmremGenerator.dispose();
+				URL.revokeObjectURL(url);
+			});
+
+			backgroundImageFileInput.value = '';
 		});
+
 		skyboxRotationRange.addEventListener('input', (e) => {
 			const angle = THREE.MathUtils.degToRad(e.target.value);
 
@@ -624,9 +635,6 @@
 		// update background when theme changes
 		if (backgroundColorInput) backgroundColorInput.value = '#' + scene.background.getHexString();
 		
-		// Expose scene to non-module scripts for compatibility / debugging.
-		window.scene = scene;
-
 		const light = new THREE.DirectionalLight(0xffffff, 3.0); // Increased intensity
 		light.position.set(1.0, 1.0, 1.0).normalize();
 		scene.add(light);
@@ -2249,6 +2257,8 @@
 
 				container.appendChild(btn);
 			});
+
+			container.appendChild(setBackgroundImageBtn);
 		}
 		// #endregion skybox
 

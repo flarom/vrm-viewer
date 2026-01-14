@@ -72,8 +72,6 @@
                     "app.sidebar.scene-tab.background.color": "色",
                     "app.sidebar.scene-tab.background.skybox-blur": "スカイボックスをぼかす",
                     "app.sidebar.scene-tab.background.skybox-position": "スカイボックスの位置",
-                    "app.sidebar.scene-tab.background.image": "画像",
-                    "app.sidebar.scene-tab.background.image.set-image": "画像を設定",
                     "app.sidebar.scene-tab.background.light-color-as-background-average": "背景の平均色をライトに使用",
                     "app.sidebar.scene-tab.background.light-color-as-background-average.set-color": "色を設定"
                 },

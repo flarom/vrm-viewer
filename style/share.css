@@ -868,7 +868,18 @@ button.danger:hover {
     overflow: hidden;
     transition: border-radius .3s;
 }
+.custom-skybox-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background-color: transparent;
+    border: 2px dashed var(--border-light-color);
+    position: absolute;
+    margin-left: 5px;
+    transition: border-radius .3s;
+}
 
+.custom-skybox-button:hover,
 .skybox-button:hover {
     border-radius: 8px;
 }
