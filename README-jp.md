@@ -1,4 +1,4 @@
-[English](README.md) | [Português](README-pt_BR.md) | **[日本語](README-jp.md)**
+[English](README.md) | [Português](README-pt_BR.md) | **日本語**
 
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/flarom/figure/1d95b2e3b251ad1b5458bb3e09293b766b78da48/static/favicon.svg" align="center" height="128px" width="128px">
@@ -38,4 +38,5 @@ python3 -m http.server
 
 このプロジェクトは [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html) を使用しています。
 また、本プロジェクトは [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main) のフォークであり、元プロジェクトは [MIT License](https://mit-license.org/) を使用しています。
+
 
