@@ -1,8 +1,3 @@
-«««
-title: README-jp
-project: figure
-»»»
-
 [English](README.md) | [Português](README-pt_BR.md) | **[日本語](README-jp.md)**
 
 <h1 align="center">
@@ -43,3 +38,4 @@ python3 -m http.server
 
 このプロジェクトは [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html) を使用しています。
 また、本プロジェクトは [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main) のフォークであり、元プロジェクトは [MIT License](https://mit-license.org/) を使用しています。
+
