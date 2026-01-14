@@ -1,8 +1,3 @@
-«««
-title: README
-project: figure
-»»»
-
 **[English](README.md)** | [Português](README-pt_BR.md) | [日本語](README-jp.md)
 
 <h1 align="center">
@@ -38,4 +33,5 @@ python3 -m http.server
 > Note that AR will not work on HTTP.
 
 ## License
+
 This project uses the [GNU Public License](https://www.gnu.org/licenses/gpl-3.0.html). And is a fork of [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main), that uses the [MIT](https://mit-license.org/) license.
