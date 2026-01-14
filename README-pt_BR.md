@@ -1,4 +1,4 @@
-[English](README.md) | **[Português](README-pt_BR.md)** | [日本語](README-jp.md)
+[English](README.md) | **Português** | [日本語](README-jp.md)
 
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/flarom/figure/1d95b2e3b251ad1b5458bb3e09293b766b78da48/static/favicon.svg" align="center" height="128px" width="128px">
