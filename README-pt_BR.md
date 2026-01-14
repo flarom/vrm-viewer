@@ -1,8 +1,3 @@
-«««
-title: README-pt_BR
-project: figure
-»»»
-
 [English](README.md) | **[Português](README-pt_BR.md)** | [日本語](README-jp.md)
 
 <h1 align="center">
