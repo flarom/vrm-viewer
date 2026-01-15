@@ -1335,9 +1335,3 @@ function showVRMMeta(vrm) {
 
     promptMessage(table.outerHTML, true, false);
 }
-
-/**
- * Show a dialog listing all materials used by a VRM.
- * Displays thumbnail preview, download button and visibility toggle.
- */
-

@@ -434,31 +434,12 @@
 			e.preventDefault();
 			backgroundImageFileInput.click();
 		});
-		
+
 		backgroundImageFileInput.addEventListener('change', (ev) => {
 			const f = ev.target.files && ev.target.files[0];
 			if (!f) return;
 
-			const url = URL.createObjectURL(f);
-
-			const loader = new THREE.TextureLoader();
-			loader.load(url, (texture) => {
-				texture.colorSpace = THREE.SRGBColorSpace;
-				texture.mapping = THREE.EquirectangularReflectionMapping;
-				texture.flipY = true;
-
-				scene.background = texture;
-
-				const pmremGenerator = new THREE.PMREMGenerator(renderer);
-				pmremGenerator.compileEquirectangularShader();
-
-				const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-				scene.environment = envMap;
-
-				pmremGenerator.dispose();
-				URL.revokeObjectURL(url);
-			});
-
+			setSkyboxFromFile(f);
 			backgroundImageFileInput.value = '';
 		});
 
@@ -1599,6 +1580,13 @@
 				} finally {
 					URL.revokeObjectURL(url);
 				}
+			} else if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|hdr)$/i.test(lname)) {
+				setSkyboxFromFile(file);
+				renderer.domElement.classList.add('drag-accept');
+				setTimeout(() => {
+					renderer.domElement.classList.remove('drag-accept');
+				}, 400);
+				return;
 			} else {
 				showToast('File not supported', 'error');
 				renderer.domElement.classList.add('drag-refuse');
@@ -1622,10 +1610,77 @@
 		mainWrapper.addEventListener('drop', async (e) => {
 			e.preventDefault();
 			renderer.domElement.classList.remove('drag-over');
+
 			const dt = e.dataTransfer;
 			if (!dt) return;
-			const file = dt.files && dt.files[0];
-			await handleFileDrop(file);
+
+			// local file
+			if (dt.files && dt.files.length > 0) {
+				await handleFileDrop(dt.files[0]);
+				return;
+			}
+
+			// try to extract image from website
+			let imageURL = null;
+
+			// 2.1 text/uri-list
+			const uriList = dt.getData('text/uri-list');
+			if (uriList) {
+				const first = uriList.split('\n')[0];
+				if (/\.(png|jpe?g|webp|hdr)(\?.*)?$/i.test(first)) {
+					imageURL = first;
+				}
+			}
+
+			// 2.2 fallback: dragged HTML
+			if (!imageURL) {
+				const html = dt.getData('text/html');
+				if (html) {
+					const match = html.match(/<img[^>]+src="([^">]+)"/i);
+					if (match && /\.(png|jpe?g|webp|hdr)(\?.*)?$/i.test(match[1])) {
+						imageURL = match[1];
+					}
+				}
+			}
+
+			if (!imageURL) {
+				showToast('Dropped content is not supported', 'error');
+				renderer.domElement.classList.add('drag-refuse');
+				setTimeout(() => {
+					renderer.domElement.classList.remove('drag-refuse');
+				}, 1000);
+				return;
+			}
+
+			// Download image and set as skybox
+			try {
+				const res = await fetch(imageURL, { mode: 'cors' });
+				if (!res.ok) throw new Error('Network error');
+
+				const blob = await res.blob();
+				if (!blob.type.startsWith('image/')) {
+					throw new Error('Not an image');
+				}
+
+				const ext = blob.type.split('/')[1] || 'png';
+				const file = new File([blob], `skybox.${ext}`, { type: blob.type });
+
+				setSkyboxFromFile(file);
+
+				renderer.domElement.classList.add('drag-accept');
+				setTimeout(() => {
+					renderer.domElement.classList.remove('drag-accept');
+				}, 400);
+
+				showToast('Skybox applied from dropped image', 'landscape');
+			} catch (err) {
+				console.error('Failed to load dropped image URL:', err);
+				showToast('Cannot load image (CORS blocked)', 'error');
+				renderer.domElement.classList.add('drag-refuse');
+				setTimeout(() => {
+					renderer.domElement.classList.remove('drag-refuse');
+				}, 1000);
+			}
 		});
 
 		// #region KEYBOARD SHORTCUTS
@@ -2213,18 +2268,55 @@
 		// #endregion Materials
 
 		// #region skybox
-		function applySkyboxFromURL(url) {
+		let skyboxTexture = null;
+		let skyboxEnvMap = null;
+
+		function setSkyboxFromTexture(texture) {
+			texture.colorSpace = THREE.SRGBColorSpace;
+			texture.mapping = THREE.EquirectangularReflectionMapping;
+			texture.flipY = true;
+
+			if (skyboxTexture) skyboxTexture.dispose();
+			skyboxTexture = texture;
+			scene.background = skyboxTexture;
+
+			if (skyboxEnvMap) skyboxEnvMap.dispose();
+
+			const pmremGenerator = new THREE.PMREMGenerator(renderer);
+			pmremGenerator.compileEquirectangularShader();
+
+			skyboxEnvMap = pmremGenerator.fromEquirectangular(texture).texture;
+			scene.environment = skyboxEnvMap;
+
+			pmremGenerator.dispose();
+		}
+
+		function setSkyboxFromURL(url) {
+			const loader = new THREE.TextureLoader();
+			loader.load(
+				url,
+				(texture) => {
+					setSkyboxFromTexture(texture);
+				},
+				undefined,
+				(err) => {
+					console.error('Failed to load skybox:', err);
+					showToast('Failed to load skybox.', 'error');
+				}
+			);
+		}
+
+		function setSkyboxFromFile(file) {
+			const url = URL.createObjectURL(file);
+
 			const loader = new THREE.TextureLoader();
 			loader.load(url, (texture) => {
-				texture.colorSpace = THREE.SRGBColorSpace;
-				texture.flipY = true;
-				texture.mapping = THREE.EquirectangularReflectionMapping;
-				scene.background = texture; scene.environment = texture;
-			}, undefined, (err) => {
-				console.error('Failed to load skybox:', err);
-				showToast('Failed to load skybox.', 'error'); 
+				setSkyboxFromTexture(texture);
+				URL.revokeObjectURL(url);
 			});
 		}
+
+
 		function populateSkyboxButtons() {
 			const container = document.getElementById('skybox-buttons');
 			if (!container) return;
@@ -2247,9 +2339,8 @@
 				btn.appendChild(img);
 
 				btn.addEventListener('click', () => {
-					applySkyboxFromURL(url);
+					setSkyboxFromURL(url);
 
-					// visual selection state
 					container.querySelectorAll('.skybox-button')
 						.forEach(b => b.classList.remove('active'));
 					btn.classList.add('active');
