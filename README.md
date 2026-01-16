@@ -20,6 +20,11 @@ Figure is a web-based VRM (Virtual Reality Model) viewer, built using Three.js a
 * **Facial expressions**: Mix facial blendshapes and control your characters eyes
 * **AR support**: Bring your characters to real life
 
+## Browser support
+| Chrome | Edge | Firefox | Safari |
+| :----: | :--: | :-----: | :----: |
+| 80+    | 80+  | 75+     | 14+    |
+
 ## Run locally
 ```sh
 git clone https://github.com/flarom/figure
@@ -35,4 +40,5 @@ python3 -m http.server
 ## License
 
 This project uses the [GNU Public License](https://www.gnu.org/licenses/gpl-3.0.html). And is a fork of [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main), that uses the [MIT](https://mit-license.org/) license.
+
 
