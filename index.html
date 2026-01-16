@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8" />
-	<title>Figure — VRM & VRMA Model Viewer for Web</title>
+	<title>Figure - VRM & VRMA Model Viewer for Web</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
 	<!-- seo -->
@@ -13,13 +13,13 @@
 	<meta name="robots" content="index, follow" />
 	<meta name="language" content="en" />
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="Figure — VRM & VRMA Model Viewer" />
+	<meta property="og:title" content="Figure - VRM & VRMA Model Viewer" />
 	<meta property="og:description" content="Preview VRM and VRMA models directly in your browser." />
 	<meta property="og:image" content="static/og-image.png" />
 	<meta property="og:url" content="https://flarom.github.io/figure" />
 	<meta property="og:site_name" content="Figure" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Figure — VRM & VRMA Model Viewer" />
+	<meta name="twitter:title" content="Figure - VRM & VRMA Model Viewer" />
 	<meta name="twitter:description" content="Preview VRM and VRMA models directly in your browser."/>
 	<meta name="twitter:image" content="static/og-image.png" />
 
@@ -89,6 +89,13 @@
 					<span class="switch-text" data-locale="app.sidebar.model-tab.face.look-at-camera">Look at camera</span>
 					<label class="switch">
 						<input type="checkbox" id="look-follow-camera" />
+						<span class="slider"></span>
+					</label>
+				</div>
+				<div class="setting switch-wrapper">
+					<span class="switch-text" data-locale="app.sidebar.model-tab.face...">Follow with head</span>
+					<label class="switch">
+						<input type="checkbox" id="followHeadChk" />
 						<span class="slider"></span>
 					</label>
 				</div>
@@ -757,7 +764,7 @@
 			// Try to remove blob from IndexedDB as well
 			deleteVrmFromIdb().catch(() => { /* ignore */ });
 			vrmModelName.textContent = '';
-			document.title = 'Figure — VRM & VRMA Model Viewer for Web';
+			document.title = 'Figure - VRM & VRMA Model Viewer for Web';
 			vrmAuthorName.textContent = '';
 			showToast('Recent VRM removed.', 'info');
 		}
@@ -849,6 +856,7 @@
 			// 'Sleepy'      : './VRMA/tk256ailab/Sleepy.vrma',
 			// 'Surprised'   : './VRMA/tk256ailab/Surprised.vrma',
 			// 'Thinking'    : './VRMA/tk256ailab/Thinking.vrma',
+			'Idle'			 : './VRMA/flarom/idle.vrma',
 			'Walk'           : './VRMA/flarom/walk.vrma',
 			'Show Full Body' : './VRMA/VRoid Project/ShowFullBody.vrma',
 			'Greeting'       : './VRMA/VRoid Project/Greeting.vrma',
@@ -1002,6 +1010,10 @@
 
 							// Save last VRM reference to localStorage (attempt to persist)
 							try { saveLastVrm(fileObject, url, displayName || (url && url.split('/').pop())); } catch (e) { console.warn(e); }
+
+							// Load an animation
+							loadVRMA(VRMA_ANIMATIONS['Idle'], 'ShowFullBody.vrma');
+							if (animationSelect) animationSelect.value = 'Idle';
 
 							resolve(vrm);
 						},
@@ -1346,6 +1358,61 @@
 					}
 				}
 			});
+		}
+
+		const followHeadChk = document.getElementById('followHeadChk');
+
+		let headFollowEnabled = false;
+		let headFollowStrength = 0.5;
+		followHeadChk.addEventListener('change', () => {
+			headFollowEnabled = followHeadChk.checked;
+
+			// unset on turn off
+			if (!headFollowEnabled && currentVrm?.humanoid) {
+				const neck = currentVrm.humanoid.getBoneNode('neck');
+				const head = currentVrm.humanoid.getBoneNode('head');
+
+				if (neck) neck.rotation.set(0, 0, 0);
+				if (head) head.rotation.set(0, 0, 0);
+			}
+		});
+
+		function updateHeadFollow() {
+			if (!headFollowEnabled || !currentVrm?.humanoid) return;
+
+			const head = currentVrm.humanoid.getRawBoneNode('head');
+			if (!head) return;
+
+			const charWorldPos = new THREE.Vector3();
+			currentVrm.scene.getWorldPosition(charWorldPos);
+
+			const camDir = new THREE.Vector3();
+			camera.getWorldDirection(camDir);
+
+			const dir = camDir.clone().negate().normalize();
+
+			// yaw (horizontal) and pitch (vertical)
+			const yaw = Math.atan2(dir.x, dir.z);
+			const pitch = Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1));
+
+			// natural limits
+			const maxYaw = THREE.MathUtils.degToRad(90);
+			const maxPitchUp = THREE.MathUtils.degToRad(90);
+			const maxPitchDown = THREE.MathUtils.degToRad(90);
+
+			const clampedYaw = THREE.MathUtils.clamp(yaw, -maxYaw, maxYaw);
+			const clampedPitch = THREE.MathUtils.clamp(pitch, -maxPitchDown, maxPitchUp);
+
+			// weight
+			// left and right
+			head.rotation.y = THREE.MathUtils.lerp( head.rotation.y, clampedYaw, headFollowStrength );
+
+			// up and down
+			if (currentVrm.meta.metaVersion == '0') {
+				head.rotation.x = THREE.MathUtils.lerp( head.rotation.x, clampedPitch, headFollowStrength );
+			} else {
+				head.rotation.x = THREE.MathUtils.lerp( head.rotation.x, -clampedPitch, headFollowStrength ); // invert clampedPitch on VRM 1.x
+			}
 		}
 
 		function applyJoystickToLook(nx, ny, maxYaw, maxPitch) {
@@ -2379,6 +2446,7 @@
 				groundShadow.position.z = currentVrm.scene.position.z;
 			}
 
+			updateHeadFollow(); // update neck rotation
 			controls.update(); // Update orbit controls
 			renderer.render(scene, camera);
 		}
@@ -2400,8 +2468,8 @@
 			} else {
 				await loadVRM(VRM_MODEL_URL, 'default.vrm');
 			}
-			await loadVRMA(VRMA_ANIMATIONS['Show Full Body'], 'ShowFullBody.vrma');
-			if (animationSelect) animationSelect.value = 'Show Full Body';
+			await loadVRMA(VRMA_ANIMATIONS['Idle'], 'ShowFullBody.vrma');
+			if (animationSelect) animationSelect.value = 'Idle';
 			updateButtons(); // Update button states after VRM is loaded
 			if (!isMobile()) document.getElementById('controls-bar').classList.add('show');
 		});
