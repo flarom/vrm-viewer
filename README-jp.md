@@ -21,6 +21,14 @@ VRMA（VRM Animation）対応、表情制御、フォトモード、拡張現実
 * **表情制御**: フェイシャルブレンドシェイプを組み合わせ、キャラクターの目を制御
 * **AR 対応**: キャラクターを現実世界に表示
 
+## ブラウザのサポート
+| Chrome | Edge | Firefox* | Safari |
+| :----: | :--: | :------: | :----: |
+| 80+    | 80+  | 75+      | 14+    |
+
+> [!NOTE]
+> Firefox には AR サポートがありません。
+
 ## ローカルで実行する
 
 ```sh
@@ -38,5 +46,6 @@ python3 -m http.server
 
 このプロジェクトは [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html) を使用しています。
 また、本プロジェクトは [tk256ailab/vrm-viewer](https://github.com/tk256ailab/vrm-viewer/tree/main) のフォークであり、元プロジェクトは [MIT License](https://mit-license.org/) を使用しています。
+
 
 
