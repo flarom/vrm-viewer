@@ -64,7 +64,7 @@
                 },
                 "SCENE TAB": {
                     "app.sidebar.scene-tab.camera": "Câmera",
-                    "app.sidebar.scene-tab.camera.fov": "Campo de visão",
+                    "app.sidebar.render-tab.camera.fov": "Campo de visão",
                     "app.sidebar.scene-tab.light": "Luz",
                     "app.sidebar.scene-tab.light.position-x": "Posição X",
                     "app.sidebar.scene-tab.light.position-y": "Posição Y",

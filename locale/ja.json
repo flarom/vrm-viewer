@@ -60,7 +60,7 @@
                 },
                 "SCENE TAB": {
                     "app.sidebar.scene-tab.camera": "カメラ",
-                    "app.sidebar.scene-tab.camera.fov": "視野角",
+                    "app.sidebar.render-tab.camera.fov": "視野角",
                     "app.sidebar.scene-tab.light": "ライト",
                     "app.sidebar.scene-tab.light.position-x": "位置 X",
                     "app.sidebar.scene-tab.light.position-y": "位置 Y",

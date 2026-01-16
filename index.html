@@ -47,6 +47,7 @@
 					<div class="dropdown-content menu" id="more-menu">
 						<button class="text-button" id="openFileBtn2">
 							<span data-locale="app.sidebar.header-more-menu.open-model">Open model</span>
+							<kbd>Ctrl+O</kbd>
 						</button>
 						<button class="text-button" id="modelInfoBtn">
 							<span data-locale="app.sidebar.header-more-menu.model-information">Model information</span>
@@ -131,12 +132,6 @@
 			</details>
 		</div>
 		<div class="tab" id="tab-scene">
-			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
-				<div class="setting top bottom switch-wrapper">
-					<span class="switch-text" data-locale="app.sidebar.scene-tab.camera.fov">Field of view</span>
-					<input type="range" id="fov-range" min="5" max="120" step="5" value="30">
-				</div>
-			</details>
 			<details open><summary data-locale="app.sidebar.scene-tab.light">Light</summary>
 				<div class="setting top switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.scene-tab.light.position-x">Position X</span>
@@ -189,6 +184,12 @@
 			
 		</div>
 		<div class="tab" id="tab-render">
+			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
+				<div class="setting top switch-wrapper">
+					<span class="switch-text" data-locale="app.sidebar.render-tab.camera.fov">Field of view</span>
+					<input type="range" id="fov-range" min="5" max="120" step="5" value="30">
+				</div>
+			</details>
 			<div class="setting top bottom switch-wrapper">
 				<span class="switch-text" data-locale="app.sidebar.render-tab.view-mode">View mode</span>
 				<select name="render-materials" id="render-materials">
@@ -239,8 +240,6 @@
 	</div>
 	<!-- #endregion MAIN -->
 
-	<!-- hidden file input for Open model button -->
-	<input type="file" id="fileInput" accept=".vrm,.vrma" style="display:none" />
 	<!-- hidden file input for backgroud image button -->
 	<input type="file" id="backgroundImageFileInput" accept="image/*" style="display:none" />
 
@@ -281,7 +280,6 @@
 
 		const openFileBtn = document.getElementById('openFileBtn');
 		const openFileBtn2 = document.getElementById('openFileBtn2');
-		const fileInput = document.getElementById('fileInput');
 		const modelInfoBtn = document.getElementById('modelInfoBtn');
 
 		// animation & pose selects
@@ -571,26 +569,18 @@
 		// #endregion DOM Elements
 
 		// Wire Open model button to hidden file input
-		if (openFileBtn && fileInput) {
-			openFileBtn.addEventListener('click', (e) => {
+		if (openFileBtn) {
+			openFileBtn.addEventListener('click', async (e) => {
 				e.preventDefault();
-				fileInput.click();
-			});
-			fileInput.addEventListener('change', async (ev) => {
-				const f = ev.target.files && ev.target.files[0];
-				if (f) await handleFileDrop(f);
-				fileInput.value = ''; // reset
+				const file = await promptOpenFile();
+				if (file) await handleFileDrop(file);
 			});
 		}
-		if (openFileBtn2 && fileInput) {
-			openFileBtn2.addEventListener('click', (e) => {
+		if (openFileBtn2) {
+			openFileBtn2.addEventListener('click', async (e) => {
 				e.preventDefault();
-				fileInput.click();
-			});
-			fileInput.addEventListener('change', async (ev) => {
-				const f = ev.target.files && ev.target.files[0];
-				if (f) await handleFileDrop(f);
-				fileInput.value = ''; // reset
+				const file = await promptOpenFile();
+				if (file) await handleFileDrop(file);
 			});
 		}
 
@@ -929,7 +919,11 @@
 							if (displayName) {
 								vrmModelName.textContent = currentVrm.meta.title || currentVrm.meta.name || displayName;
 								document.title = vrmModelName.textContent + ' - Figure';
-								vrmAuthorName.textContent = currentVrm.meta.author || 'Unknown author';
+								if (currentVrm.meta.metaVersion == '0') {
+									vrmAuthorName.textContent = currentVrm.meta.author || 'Unknown author';
+								} else {
+									vrmAuthorName.textContent = (currentVrm.meta.authors && currentVrm.meta.authors.length > 0) ? currentVrm.meta.authors.join(', ') : 'Unknown author';
+								}
 							}
 
 							// Adjust ground shadow size and position to match model bounds
@@ -1798,6 +1792,18 @@
 				closeAllDialogs();
 				hideAllMenus();
 				return;
+			}
+
+			//// open vrm/vrma
+			if (e.key === 'o' && e.ctrlKey) {
+				e.preventDefault();
+				const input = document.createElement("input");
+				input.type = "file";
+				input.accept = ".vrm,.vrma"
+				input.onchange = async (event) => {
+					await handleFileDrop(event.target.files[0]);
+				};
+				input.click();
 			}
 
 			if (isTyping()) return; // if user is typing, avoid character shortcuts
