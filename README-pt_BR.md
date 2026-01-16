@@ -20,6 +20,14 @@ Figure é um visualizador de VRM (Virtual Reality Model) para web, construído u
 * **Expressões faciais**: Misture blendshapes faciais e controle os olhos de seu personagem
 * **Suporte para AR**: Traga seus personagens para a vida real
 
+## Suporte para navegadores
+| Chrome | Edge | Firefox* | Safari |
+| :----: | :--: | :------: | :----: |
+| 80+    | 80+  | 75+      | 14+    |
+
+> [!NOTE]
+> Firefox não suporta AR.
+
 ## Rodar localmente
 ```sh
 git clone https://github.com/flarom/figure
