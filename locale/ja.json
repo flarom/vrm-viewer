@@ -49,6 +49,7 @@
                     "app.sidebar.model-tab.body.reset-pose.reset": "リセット",
                     "app.sidebar.model-tab.face": "顔",
                     "app.sidebar.model-tab.face.look-at-camera": "カメラを見る",
+                    "app.sidebar.model-tab.face.head-follows-camera": "カメラ追従（頭）",
                     "app.sidebar.model-tab.face.blink": "まばたき",
                     "app.sidebar.model-tab.face.joystick-hint": "枠内をドラッグして目線を調整します。",
                     "app.sidebar.model-tab.face.recenter-eyes": "目線を中央に戻す",
