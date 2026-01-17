@@ -44,7 +44,6 @@
                 "MODEL TAB": {
                     "app.sidebar.model-tab.body": "ボディ",
                     "app.sidebar.model-tab.body.animation": "アニメーション",
-                    "app.sidebar.model-tab.body.pose": "ポーズ",
                     "app.sidebar.model-tab.body.reset-pose": "ポーズをリセット",
                     "app.sidebar.model-tab.body.reset-pose.reset": "リセット",
                     "app.sidebar.model-tab.face": "顔",

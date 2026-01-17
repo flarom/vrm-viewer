@@ -48,7 +48,6 @@
                 "MODEL TAB": {
                     "app.sidebar.model-tab.body": "Corpo",
                     "app.sidebar.model-tab.body.animation": "Animação",
-                    "app.sidebar.model-tab.body.pose": "Pose",
                     "app.sidebar.model-tab.body.reset-pose": "Resetar pose",
                     "app.sidebar.model-tab.body.reset-pose.reset": "Resetar",
                     "app.sidebar.model-tab.face": "Rosto",

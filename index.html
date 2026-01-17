@@ -72,13 +72,9 @@
 		</header>
 		<div class="tab" id="tab-model">
 			<details open><summary data-locale="app.sidebar.model-tab.body">Body</summary>
-				<div class="setting top switch-wrapper">
+				<div class="setting top bottom switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.model-tab.body.animation">Animation</span>
 					<select name="animation-select" id="animation-select"></select>
-				</div>
-				<div class="setting bottom switch-wrapper">
-					<span class="switch-text" data-locale="app.sidebar.model-tab.body.pose">Pose</span>
-					<select name="poseSlct" id="PoseSlct"></select>
 				</div>
 				<div class="setting bottom top switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.model-tab.body.reset-pose">Reset pose</span>
@@ -103,7 +99,7 @@
 				<div class="setting switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.model-tab.face.blink">Blink</span>
 					<label class="switch">
-						<input type="checkbox" id="blink" />
+						<input type="checkbox" id="blink-chk" />
 						<span class="slider"></span>
 					</label>
 				</div>
@@ -185,7 +181,7 @@
 		</div>
 		<div class="tab" id="tab-render">
 			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
-				<div class="setting top switch-wrapper">
+				<div class="setting top bottom switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.render-tab.camera.fov">Field of view</span>
 					<input type="range" id="fov-range" min="5" max="120" step="5" value="30">
 				</div>
@@ -282,10 +278,9 @@
 		const openFileBtn2 = document.getElementById('openFileBtn2');
 		const modelInfoBtn = document.getElementById('modelInfoBtn');
 
-		// animation & pose selects
+		// animation selects
 		const animationSelect = document.getElementById('animation-select');
-		const poseSelect = document.getElementById('PoseSlct');
-		const blinkCbx = document.getElementById('blink');
+		const blinkCbx = document.getElementById('blink-chk');
 		let blinkEnabled = false;
 		let blinkTimeout = null;
 		let blinkAnimating = false;
@@ -857,11 +852,6 @@
 			'Squat'          : './VRMA/VRoid Project/Squat.vrma'
 		};
 
-		// Separate dictionary for single-frame poses (kept separate for organization)
-		const VRMA_POSES = {
-			'test': './VRMA_POSES/angry.vrma',
-		};
-
 		const SKYBOXES = {
 			'Day' : './skybox/day.png',
 			'Dusk' : './skybox/dusk.png',
@@ -1156,6 +1146,7 @@
 				if (currentVrm) {
 					currentVrm.humanoid.resetNormalizedPose();
 				}
+
 				// reset play/pause icon to play
 				setPlayPauseIcon(false);
 			}
@@ -1181,7 +1172,6 @@
 
 			// enable/disable selects
 			if (animationSelect) animationSelect.disabled = !hasVrm;
-			if (poseSelect) poseSelect.disabled = !hasVrm;
 		}
 
 		function updateFavicon() {
@@ -1213,7 +1203,6 @@
 			if (!animationSelect) return;
 			animationSelect.innerHTML = '';
 			const keys = Object.keys(VRMA_ANIMATIONS || {});
-			animationSelect.appendChild(document.createElement('option')); // empty option
 			keys.forEach(k => {
 				const opt = document.createElement('option');
 				opt.value = k;
@@ -1221,20 +1210,6 @@
 				animationSelect.appendChild(opt);
 			});
 			animationSelect.disabled = keys.length === 0 || !currentVrm;
-		}
-
-		function populatePoseSelect() {
-			if (!poseSelect) return;
-			poseSelect.innerHTML = '';
-			const keys = Object.keys(VRMA_POSES || {});
-			poseSelect.appendChild(document.createElement('option')); // empty option
-			keys.forEach(k => {
-				const opt = document.createElement('option');
-				opt.value = k;
-				opt.textContent = k;
-				poseSelect.appendChild(opt);
-			});
-			poseSelect.disabled = keys.length === 0 || !currentVrm;
 		}
 
 		// Wire select handlers
@@ -1247,40 +1222,11 @@
 				vrmaAnimationClip = undefined;
 				await loadVRMA(url, url.split('/').pop());
 				// auto-play handled by loadVRMA
-				// reset poseSelect to empty
-				if (poseSelect) poseSelect.value = '';
-			});
-		}
-
-		if (poseSelect) {
-			poseSelect.addEventListener('change', async (e) => {
-				const key = e.target.value;
-				if (!key) return;
-				const url = VRMA_POSES[key];
-				if (!url) return;
-				// load pose as a clip and apply single-frame pose
-				try {
-					const clip = await loadVRMA(url, url.split('/').pop());
-					if (!clip || !currentMixer) return;
-					// create an action and step to first frame then pause
-					const action = currentMixer.clipAction(clip);
-					action.reset();
-					action.play();
-					// clamp and pause so pose remains
-					action.clampWhenFinished = true;
-					action.paused = true;
-					try { currentMixer.update(0); } catch (e) { /* ignore */ }
-					// reset animationSelect to empty
-					if (animationSelect) animationSelect.value = '';
-				} catch (err) {
-					console.warn('Failed to apply pose:', err);
-				}
 			});
 		}
 
 		// initial populate
 		populateAnimationSelect();
-		populatePoseSelect();
 
 		// #region Look controls
 		function createLookControls() {
@@ -1363,8 +1309,8 @@
 
 			// unset on turn off
 			if (!headFollowEnabled && currentVrm?.humanoid) {
-				const neck = currentVrm.humanoid.getBoneNode('neck');
-				const head = currentVrm.humanoid.getBoneNode('head');
+				const neck = currentVrm.humanoid.getRawBoneNode('neck');
+				const head = currentVrm.humanoid.getRawBoneNode('head');
 
 				if (neck) neck.rotation.set(0, 0, 0);
 				if (head) head.rotation.set(0, 0, 0);
@@ -1511,7 +1457,7 @@
 
 				// re-enable joystick interaction, in case it was disabled
 				handle.style.opacity = '1';
-				applyJoystickToLook(pos.x, pos.y, maxYaw, maxPitch);
+				applyJoystickToLook(0, 0, 0, 0);
 				joystick.style.pointerEvents = 'auto';
 				// disable lookAt target so manual control is preserved
 				if (currentVrm && currentVrm.lookAt) {

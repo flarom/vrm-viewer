@@ -211,8 +211,8 @@ select {
 
 
 .joystick-container {
-    width:140px;
-    height:140px;
+    min-width:140px;
+    min-height:140px;
     border:1px solid var(--border-field-color);
     border-radius:14px;
     position:relative;
@@ -224,7 +224,7 @@ select {
     width:28px;
     height:28px;
     border-radius:50%;
-    background:var(--button-color-2);
+    background:var(--highlight-color);
     position:absolute;
     left:56px;
     top:56px;
