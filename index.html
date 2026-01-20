@@ -501,7 +501,7 @@
 							const color = getComputedStyle(document.body)
 								.getPropertyValue('--text-color')
 								.trim();
-							return new THREE.MeshBasicMaterial({
+							return new THREE.MeshNormalMaterial({
 								color,
 								wireframe: true
 							});
