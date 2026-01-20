@@ -1321,19 +1321,32 @@
 			if (!headFollowEnabled || !currentVrm?.humanoid) return;
 
 			const head = currentVrm.humanoid.getRawBoneNode('head');
-			if (!head) return;
+			const hips = currentVrm.humanoid.getRawBoneNode('hips');
+			if (!head || !hips) {
+				showToast("Model is not compatible", 'Error');
+				followHeadChk.checked = false;
+				headFollowEnabled = false;
+				return;
+			};
 
-			const charWorldPos = new THREE.Vector3();
-			currentVrm.scene.getWorldPosition(charWorldPos);
+			const headWorldPos = new THREE.Vector3();
+			const camWorldPos = new THREE.Vector3();
 
-			const camDir = new THREE.Vector3();
-			camera.getWorldDirection(camDir);
+			head.getWorldPosition(headWorldPos);
+			camera.getWorldPosition(camWorldPos);
 
-			const dir = camDir.clone().negate().normalize();
+			// direction fron head to camera
+			const dirWorld = camWorldPos.sub(headWorldPos).normalize();
 
-			// yaw (horizontal) and pitch (vertical)
-			const yaw = Math.atan2(dir.x, dir.z);
-			const pitch = Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1));
+			// convert local space fom hips
+			const invRootQuat = hips.getWorldQuaternion(new THREE.Quaternion()).invert();
+			const dirLocal = dirWorld.clone().applyQuaternion(invRootQuat);
+
+			// yaw & pitch relative from characters hips rotation
+			const yaw = Math.atan2(dirLocal.x, dirLocal.z);
+			const pitch = Math.asin(
+				THREE.MathUtils.clamp(dirLocal.y, -1, 1)
+			);
 
 			// natural limits
 			const maxYaw = THREE.MathUtils.degToRad(90);
@@ -1341,17 +1354,31 @@
 			const maxPitchDown = THREE.MathUtils.degToRad(90);
 
 			const clampedYaw = THREE.MathUtils.clamp(yaw, -maxYaw, maxYaw);
-			const clampedPitch = THREE.MathUtils.clamp(pitch, -maxPitchDown, maxPitchUp);
+			const clampedPitch = THREE.MathUtils.clamp(
+				pitch,
+				-maxPitchDown,
+				maxPitchUp
+			);
 
-			// weight
-			// left and right
-			head.rotation.y = THREE.MathUtils.lerp( head.rotation.y, clampedYaw, headFollowStrength );
+			// smoothing
+			head.rotation.y = THREE.MathUtils.lerp(
+				head.rotation.y,
+				clampedYaw,
+				headFollowStrength
+			);
 
-			// up and down
-			if (currentVrm.meta.metaVersion == '0') {
-				head.rotation.x = THREE.MathUtils.lerp( head.rotation.x, clampedPitch, headFollowStrength );
+			if (currentVrm.meta.metaVersion === '0') {
+				head.rotation.x = THREE.MathUtils.lerp(
+					head.rotation.x,
+					clampedPitch,
+					headFollowStrength
+				);
 			} else {
-				head.rotation.x = THREE.MathUtils.lerp( head.rotation.x, -clampedPitch, headFollowStrength ); // invert clampedPitch on VRM 1.x
+				head.rotation.x = THREE.MathUtils.lerp(
+					head.rotation.x,
+					-clampedPitch,
+					headFollowStrength
+				);
 			}
 		}
 
