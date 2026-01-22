@@ -1322,64 +1322,77 @@
 
 			const head = currentVrm.humanoid.getRawBoneNode('head');
 			const hips = currentVrm.humanoid.getRawBoneNode('hips');
-			if (!head || !hips) {
-				showToast("Model is not compatible", 'Error');
-				followHeadChk.checked = false;
-				headFollowEnabled = false;
-				return;
-			};
+			if (!head || !hips) return;
 
 			const headWorldPos = new THREE.Vector3();
 			const camWorldPos = new THREE.Vector3();
-
 			head.getWorldPosition(headWorldPos);
 			camera.getWorldPosition(camWorldPos);
 
-			// direction fron head to camera
-			const dirWorld = camWorldPos.sub(headWorldPos).normalize();
+			const targetDirWorld = camWorldPos
+				.clone()
+				.sub(headWorldPos)
+				.normalize();
 
-			// convert local space fom hips
-			const invRootQuat = hips.getWorldQuaternion(new THREE.Quaternion()).invert();
-			const dirLocal = dirWorld.clone().applyQuaternion(invRootQuat);
+			const hipsWorldQuat = hips.getWorldQuaternion(new THREE.Quaternion());
+			const invHipsWorldQuat = hipsWorldQuat.clone().invert();
+			const targetDirLocal = targetDirWorld
+				.clone()
+				.applyQuaternion(invHipsWorldQuat)
+				.normalize();
 
-			// yaw & pitch relative from characters hips rotation
-			const yaw = Math.atan2(dirLocal.x, dirLocal.z);
-			const pitch = Math.asin(
-				THREE.MathUtils.clamp(dirLocal.y, -1, 1)
-			);
+			const headWorldQuat = head.getWorldQuaternion(new THREE.Quaternion());
+			const headLocalQuat = invHipsWorldQuat.clone().multiply(headWorldQuat);
 
-			// natural limits
-			const maxYaw = THREE.MathUtils.degToRad(90);
-			const maxPitchUp = THREE.MathUtils.degToRad(90);
-			const maxPitchDown = THREE.MathUtils.degToRad(90);
+			const forwardBase =
+				currentVrm.meta.metaVersion === '0'
+					? new THREE.Vector3(0, 0, -1) // VRM 0.x
+					: new THREE.Vector3(0, 0, 1); // VRM 1.x
 
-			const clampedYaw = THREE.MathUtils.clamp(yaw, -maxYaw, maxYaw);
-			const clampedPitch = THREE.MathUtils.clamp(
-				pitch,
-				-maxPitchDown,
-				maxPitchUp
-			);
+			const headForward = forwardBase
+				.clone()
+				.applyQuaternion(headLocalQuat)
+				.normalize();
 
-			// smoothing
-			head.rotation.y = THREE.MathUtils.lerp(
-				head.rotation.y,
-				clampedYaw,
-				headFollowStrength
-			);
+			const flatTarget = targetDirLocal.clone();
+			flatTarget.y = 0;
+			flatTarget.normalize();
 
-			if (currentVrm.meta.metaVersion === '0') {
-				head.rotation.x = THREE.MathUtils.lerp(
-					head.rotation.x,
-					clampedPitch,
-					headFollowStrength
-				);
-			} else {
-				head.rotation.x = THREE.MathUtils.lerp(
-					head.rotation.x,
-					-clampedPitch,
-					headFollowStrength
+			const flatForward = forwardBase.clone();
+			flatForward.y = 0;
+			flatForward.normalize();
+
+			const horizontalAngle = flatForward.angleTo(flatTarget);
+
+			const MAX_BACK_ANGLE = THREE.MathUtils.degToRad(110);
+			const FADE_RANGE = THREE.MathUtils.degToRad(30);
+
+			let backFactor = 1;
+			if (horizontalAngle > MAX_BACK_ANGLE) {
+				backFactor = THREE.MathUtils.clamp(
+					1 - (horizontalAngle - MAX_BACK_ANGLE) / FADE_RANGE,
+					0,
+					1
 				);
 			}
+
+			const lookQuat = new THREE.Quaternion().setFromUnitVectors(
+				headForward,
+				targetDirLocal
+			);
+
+			const parentWorldQuat = head.parent.getWorldQuaternion(new THREE.Quaternion());
+			const localTargetQuat = parentWorldQuat
+				.clone()
+				.invert()
+				.multiply(hipsWorldQuat)
+				.multiply(lookQuat)
+				.multiply(headLocalQuat);
+
+			head.quaternion.slerp(
+				localTargetQuat,
+				headFollowStrength * backFactor
+			);
 		}
 
 		function applyJoystickToLook(nx, ny, maxYaw, maxPitch) {
