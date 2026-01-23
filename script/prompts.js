@@ -326,90 +326,157 @@ function promptMessage(htmlContent, showCloseButton = true, useBigDialog = false
     });
 }
 
-function showMessageFromFile(filePath, showCloseButton = true, useBigDialog = false, showAnimation = true, showBg = true, width = 400, toolbarLeft = "", toolbarCenter = "", toolbarRight = "") {
-    fetch(filePath).then((response) => {
-        if (!response.ok) {
-            throw new Error(`Failed loading file: ${response.statusText}`);
-        }
-        return response.text();
-    }).then((htmlContent) => {
-        const overlay = document.createElement("div");
-        overlay.className = "prompt-overlay";
-        if (!showBg) {
-            overlay.classList.add("no-bg");
-        }
-        const dialog = document.createElement("div");
-        dialog.className = useBigDialog ? "prompt-big-dialog" : "prompt-dialog";
-        if (!useBigDialog) dialog.style.maxWidth = `${width}px`;
-        if (!showAnimation) dialog.classList.add("no-animation");
-
-        const closeButton = document.createElement("button");
-        closeButton.textContent = "close";
-        closeButton.className = "icon-button dialog-window-control";
-        closeButton.setAttribute("translate", "no");
-
-        const toolbar = document.createElement("div");
-        toolbar.className = "toolbar";
-
-        const toolbarLeftDiv = document.createElement("div");
-        toolbarLeftDiv.className = "toolbar-left";
-        toolbarLeftDiv.innerHTML = toolbarLeft;
-
-        const toolbarCenterDiv = document.createElement("div");
-        toolbarCenterDiv.className = "toolbar-center";
-        toolbarCenterDiv.innerHTML = toolbarCenter;
-
-        const toolbarRightDiv = document.createElement("div");
-        toolbarRightDiv.className = "toolbar-right";
-        toolbarRightDiv.innerHTML = toolbarRight;
-
-        if (showCloseButton) toolbarRightDiv.appendChild(closeButton);
-
-        toolbar.appendChild(toolbarLeftDiv);
-        toolbar.appendChild(toolbarCenterDiv);
-        toolbar.appendChild(toolbarRightDiv);
-
-        const content = document.createElement("div");
-        const template = document.createElement("template");
-        template.innerHTML = htmlContent.trim();
-        Array.from(template.content.childNodes).forEach((node) => content.appendChild(node));
-
-        dialog.appendChild(toolbar);
-        dialog.appendChild(content);
-
-        overlay.appendChild(dialog);
-        document.body.appendChild(overlay);
-        translateWithin(overlay);
-
-        const scripts = content.querySelectorAll("script");
-        scripts.forEach((oldScript) => {
-            const newScript = document.createElement("script");
-            if (oldScript.src) {
-                newScript.src = oldScript.src;
-            } else {
-                newScript.textContent = oldScript.textContent;
+function showMessageFromFile(filePath) {
+    fetch(filePath)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Failed loading file: ${response.statusText}`);
             }
-            Array.from(oldScript.attributes).forEach((attr) =>
-                newScript.setAttribute(attr.name, attr.value)
-            );
-            oldScript.replaceWith(newScript);
-        });
+            return response.text();
+        })
+        .then((htmlContent) => {
+            // parse dialog html
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, "text/html");
 
-        closeButton.addEventListener("click", () => {
-            document.body.removeChild(overlay);
-        });
+            // meta helpers
+            const getMeta = (name, fallback = null) => {
+                const meta = doc.querySelector(`meta[name="${name}"]`);
+                return meta ? meta.content : fallback;
+            };
 
-        overlay.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                document.body.removeChild(overlay);
+            const getMetaBool = (name, fallback = true) => {
+                const value = getMeta(name);
+                if (value === null) return fallback;
+                return ["true", "1", "yes", "on"].includes(value.toLowerCase());
+            };
+
+            const getMetaInt = (name, fallback) => {
+                const value = parseInt(getMeta(name), 10);
+                return Number.isFinite(value) ? value : fallback;
+            };
+
+            // meta settings
+            const showCloseButton = getMetaBool("dialog-show-close-button", true);
+            const useBigDialog    = getMetaBool("dialog-big", false);
+            const showAnimation   = getMetaBool("dialog-animate", true);
+            const showBg          = getMetaBool("dialog-show-bg", true);
+            const width           = getMetaInt("dialog-prefered-width", 400);
+
+            const toolbarLeft   = getMeta("dialog-toolbar-left", "");
+            const toolbarCenter = getMeta("dialog-toolbar-center", "");
+            const toolbarRight  = getMeta("dialog-toolbar-right", "");
+
+            // inject dialog css
+            const dialogId = crypto.randomUUID();
+            const injectedStyles = [];
+
+            doc.querySelectorAll("style").forEach((style) => {
+                const clone = document.createElement("style");
+                clone.textContent = style.textContent;
+                clone.dataset.dialogStyle = dialogId;
+                document.head.appendChild(clone);
+                injectedStyles.push(clone);
+            });
+
+            doc.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+                const clone = document.createElement("link");
+                clone.rel = "stylesheet";
+                clone.href = link.href;
+                clone.dataset.dialogStyle = dialogId;
+                document.head.appendChild(clone);
+                injectedStyles.push(clone);
+            });
+
+            // overlay and dialog
+            const overlay = document.createElement("div");
+            overlay.className = "prompt-overlay";
+            overlay.tabIndex = -1;
+
+            if (!showBg) overlay.classList.add("no-bg");
+
+            const dialog = document.createElement("div");
+            dialog.className = useBigDialog ? "prompt-big-dialog" : "prompt-dialog";
+            dialog.setAttribute("data-dialog", "");
+
+            if (!useBigDialog) {
+                dialog.style.maxWidth = `${width}px`;
             }
-        });
 
-        closeButton.focus();
-    })
-        .catch((error) => {
-            console.error(error);
-        });
+            if (!showAnimation) {
+                dialog.classList.add("no-animation");
+            }
+
+            // toolbar
+            const toolbar = document.createElement("div");
+            toolbar.className = "toolbar";
+
+            const left = document.createElement("div");
+            left.className = "toolbar-left";
+            left.innerHTML = toolbarLeft;
+
+            const center = document.createElement("div");
+            center.className = "toolbar-center";
+            center.innerHTML = toolbarCenter;
+
+            const right = document.createElement("div");
+            right.className = "toolbar-right";
+            right.innerHTML = toolbarRight;
+
+            const closeButton = document.createElement("button");
+            closeButton.textContent = "close";
+            closeButton.className = "icon-button dialog-window-control";
+            closeButton.setAttribute("translate", "no");
+
+            if (showCloseButton) {
+                right.appendChild(closeButton);
+            }
+
+            toolbar.append(left, center, right);
+
+            // content
+            const content = document.createElement("div");
+            content.className = "dialog-content";
+            content.append(...doc.body.childNodes);
+
+            dialog.append(toolbar, content);
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            translateWithin(overlay);
+
+            // scripts
+            content.querySelectorAll("script").forEach((oldScript) => {
+                const newScript = document.createElement("script");
+
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
+                }
+
+                [...oldScript.attributes].forEach((attr) =>
+                    newScript.setAttribute(attr.name, attr.value)
+                );
+
+                oldScript.replaceWith(newScript);
+            });
+
+            // cleanup + close dialog
+            const closeDialog = () => {
+                injectedStyles.forEach((el) => el.remove());
+                overlay.remove();
+            };
+
+            closeButton.addEventListener("click", closeDialog);
+
+            overlay.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeDialog();
+            });
+
+            closeButton.focus();
+        })
+        .catch(console.error);
 }
 
 function promptConfirm(message, dangerous = false) {
@@ -865,7 +932,7 @@ function showVRMMeta(vrm) {
     const table = document.createElement('table');
     table.style.width = '100%';
 
-    const addItem = (label, value, dataLocale) => {
+    const addItem = (label, value, locale) => {
         const tr = document.createElement('tr');
         const tdLabel = document.createElement('td');
         tdLabel.style.fontWeight = 'bold';
@@ -873,26 +940,31 @@ function showVRMMeta(vrm) {
         tdLabel.style.padding = '6px 8px';
         tdLabel.textContent = label;
         tdLabel.title = label;
-        tdLabel.dataset.locale = dataLocale;
+        tdLabel.dataset.locale = locale;
         const tdValue = document.createElement('td');
         tdValue.style.borderBottom = '1px solid var(--border-light-color)';
         tdValue.style.padding = '6px 8px';
-        tdValue.textContent = (value !== undefined && value !== null && value !== '') ? value : 'N/A';
+        tdValue.textContent = value?.text ?? value ?? 'N/A';
+        if (value?.locale) {
+            tdValue.dataset.locale = value.locale;
+        }
         tr.appendChild(tdLabel);
         tr.appendChild(tdValue);
         table.appendChild(tr);
     };
 
-    const addSubTitle = (title, dataLocale) => {
+    const addSubTitle = (title, locale) => {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 2;
         td.style.textAlign = 'center';
+        td.style.padding = '8px';
+        td.style.fontWeight = 'bold';
         td.textContent = title;
-        td.dataset.locale = dataLocale;
+        td.dataset.locale = locale;
         tr.appendChild(td);
         table.appendChild(tr);
-    }
+    };
 
     // determine VRM meta version safely
     const metaVersion = meta.metaVersion;
@@ -900,45 +972,46 @@ function showVRMMeta(vrm) {
     if (metaVersion == '0') {
         // VRM 0.x
         addSubTitle('Avatar information', 'dialogs.model-info.vrm0.avatar-information');
-        addItem('Title', meta.title || 'N/A', 'dialogs.model-info.vrm0.avatar-information.title');
-        addItem('Creator', meta.author || 'N/A', 'dialogs.model-info.vrm0.avatar-information.creator');
-        addItem('Contact Information', meta.contactInformation || 'N/A', 'dialogs.model-info.vrm0.avatar-information.contact-information');
-        addItem('Reference', meta.reference || 'N/A', 'dialogs.model-info.vrm0.avatar-information.reference');
-        addItem('Version', meta.version || 'N/A', 'dialogs.model-info.vrm0.avatar-information.version');
-        addItem('VRM version', meta.metaVersion || 'N/A', "dialogs.model-info.vrm0.avatar-information.vrm-version");
+        addItem('Title'              , meta.title             , 'dialogs.model-info.vrm0.avatar-information.title');
+        addItem('Creator'            , meta.author            , 'dialogs.model-info.vrm0.avatar-information.creator');
+        addItem('Contact Information', meta.contactInformation, 'dialogs.model-info.vrm0.avatar-information.contact-information');
+        addItem('Reference'          , meta.reference         , 'dialogs.model-info.vrm0.avatar-information.reference');
+        addItem('Version'            , meta.version           , 'dialogs.model-info.vrm0.avatar-information.version');
+        addItem('VRM version'        , '⚠️ VRM 0.x'           , "dialogs.model-info.vrm0.avatar-information.vrm-version");
         
         addSubTitle('Avatar personality','dialogs.model-info.vrm0.avatar-personality');
-        addItem('Allowed User Name', meta.allowedUserName || 'N/A', 'dialogs.model-info.vrm0.avatar-personality.allowed-user-name');
-        addItem('Depictions of violence', meta.violentUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.depictions-of-violence');
-        addItem('Depictions of sexual acts', meta.sexualUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.depictions-of-sexual-acts');
-        addItem('Commercial use', meta.commercialUssageName || 'No', 'dialogs.model-info.vrm0.avatar-personality.commercial-use');
-        addItem('Permission information URL', meta.otherPermissionUrl || 'N/A', 'dialogs.model-info.vrm0.avatar-personality.permission-information-url');
+        addItem('Allowed User Name'         , meta.allowedUserName                                  , 'dialogs.model-info.vrm0.avatar-personality.allowed-user-name');
+        addItem('Depictions of violence'    , resolveEnum(meta.violentUssageName, USAGE_MAP_VRM0)   , 'dialogs.model-info.vrm0.avatar-personality.depictions-of-violence');
+        addItem('Depictions of sexual acts' , resolveEnum(meta.sexualUssageName , USAGE_MAP_VRM0)   , 'dialogs.model-info.vrm0.avatar-personality.depictions-of-sexual-acts');
+        addItem('Commercial use'            , resolveEnum(meta.commercialUssageName, USAGE_MAP_VRM0), 'dialogs.model-info.vrm0.avatar-personality.commercial-use');
+        addItem('Permission information URL', meta.otherPermissionUrl                               , 'dialogs.model-info.vrm0.avatar-personality.permission-information-url');
 
         addSubTitle('Redistribution and alteration','dialogs.model-info.vrm0.redistribution-and-alteration');
-        addItem('License', meta.licenseName || 'N/A', 'dialogs.model-info.vrm0.redistribution-and-alteration.license');
+        addItem('License', resolveEnum(meta.licenseName, LICENSE_MAP_VRM0), 'dialogs.model-info.vrm0.redistribution-and-alteration.license');
     } else if (metaVersion == '1') {
         // VRM 1.x
         addSubTitle('Avatar information', 'dialogs.model-info.vrm1.avatar-information');
-        addItem('Avatar name', meta.name || 'N/A', 'dialogs.model-info.vrm1.avatar-information.avatar-name');
-        addItem('Version', meta.version || 'N/A', 'dialogs.model-info.vrm1.avatar-information.version');
-        addItem('Authors', (meta.authors && meta.authors.length > 0) ? meta.authors.join(', ') : 'N/A', 'dialogs.model-info.vrm1.avatar-information.authors');
-        addItem('Creator copyright', meta.copyrightInformation || 'N/A', 'dialogs.model-info.vrm1.avatar-information.creator-copyright');
-        addItem('Contact Information', meta.contactInformation || 'N/A', 'dialogs.model-info.vrm1.avatar-information.contact-information');
-        addItem('References', (meta.references && meta.references.length > 0) ? meta.references.join(', ') : 'N/A', 'dialogs.model-info.vrm1.avatar-information.references');
-        addItem('Third party licenses', meta.thirdPartyLicenses || 'N/A', 'dialogs.model-info.vrm1.avatar-information.third-party-licenses');
+        addItem('Avatar name'         , meta.name                 , 'dialogs.model-info.vrm1.avatar-information.avatar-name');
+        addItem('Version'             , meta.version              , 'dialogs.model-info.vrm1.avatar-information.version');
+        addItem('Authors'             , meta.authors.join(', ')   , 'dialogs.model-info.vrm1.avatar-information.authors');
+        addItem('Creator copyright'   , meta.copyrightInformation , 'dialogs.model-info.vrm1.avatar-information.creator-copyright');
+        addItem('Contact Information' , meta.contactInformation   , 'dialogs.model-info.vrm1.avatar-information.contact-information');
+        addItem('References'          , meta.references.join(', '), 'dialogs.model-info.vrm1.avatar-information.references');
+        addItem('Third party licenses', meta.thirdPartyLicenses   , 'dialogs.model-info.vrm1.avatar-information.third-party-licenses');
+        addItem('VRM version'         , 'VRM 1.x'                 , "dialogs.model-info.vrm1.avatar-information.vrm-version");
 
         addSubTitle('Avatar permission', 'dialogs.model-info.vrm1.avatar-permission');
-        addItem('Avatar use permission', meta.avatarPermission || 'N/A', 'dialogs.model-info.vrm1.avatar-permission.avatar-use-permission');
-        addItem('Violent usage', meta.allowExcessivelyViolentUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.violent-usage');
-        addItem('Sexual usage', meta.allowExcessivelySexualUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.sexual-usage');
-        addItem('Political usage', meta.allowPoliticalOrReligiousUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.political-usage');
-        addItem('Antisocial usage', meta.allowAntisocialOrHateUsage ? 'Yes' : 'No', 'dialogs.model-info.vrm1.avatar-permission.antisocial-usage');
-        addItem('Commercial usage', meta.commercialUsage || 'No', 'dialogs.model-info.vrm1.avatar-permission.commercial-usage');
+        addItem('Avatar use permission', resolveEnum(meta.avatarPermission, AVATAR_PERMISSION_MAP), 'dialogs.model-info.vrm1.avatar-permission.avatar-use-permission');
+        addItem('Violent usage'        , resolveYesNo(meta.allowExcessivelyViolentUsage)          , 'dialogs.model-info.vrm1.avatar-permission.violent-usage');
+        addItem('Sexual usage'         , resolveYesNo(meta.allowExcessivelySexualUsage)           , 'dialogs.model-info.vrm1.avatar-permission.sexual-usage');
+        addItem('Political usage'      , resolveYesNo(meta.allowPoliticalOrReligiousUsage)        , 'dialogs.model-info.vrm1.avatar-permission.political-usage');
+        addItem('Antisocial usage'     , resolveYesNo(meta.allowAntisocialOrHateUsage)            , 'dialogs.model-info.vrm1.avatar-permission.antisocial-usage');
+        addItem('Commercial usage'     , resolveEnum(meta.commercialUsage, COMMERCIAL_USAGE_MAP)  , 'dialogs.model-info.vrm1.avatar-permission.commercial-usage');
 
         addSubTitle('Redistribution and alteration', 'dialogs.model-info.vrm1.redistribution-and-alteration');
-        addItem('Redistribution', meta.allowRedistribution ? 'Yes' : 'No', 'dialogs.model-info.vrm1.redistribution-and-alteration.redistribution');
-        addItem('Alterations', meta.modification || 'N/A', 'dialogs.model-info.vrm1.redistribution-and-alteration.alterations');
-        addItem('Attribution', meta.creditNotation || 'N/A', 'dialogs.model-info.vrm1.redistribution-and-alteration.attribution');
+        addItem('Redistribution', resolveYesNo(meta.allowRedistribution)          , 'dialogs.model-info.vrm1.redistribution-and-alteration.redistribution');
+        addItem('Alterations'   , resolveEnum(meta.modification, MODIFICATION_MAP), 'dialogs.model-info.vrm1.redistribution-and-alteration.alterations');
+        addItem('Attribution'   , meta.creditNotation                             , 'dialogs.model-info.vrm1.redistribution-and-alteration.attribution');
     } else {
         // Unknown version
         addItem('VRM version', 'Unknown', 'dialogs.model-info.vrm-unknown.version');
@@ -946,6 +1019,93 @@ function showVRMMeta(vrm) {
 
     promptMessage(table.outerHTML, true, false);
 }
+
+function resolveEnum(value, map) {
+    if (!value || !map[value]) {
+        return {
+            text: 'Unknown',
+            locale: 'dialogs.model-info.common.unknown'
+        };
+    }
+    return map[value];
+}
+
+function resolveYesNo(value) {
+    return value
+        ? { text: 'Yes', locale: 'dialogs.model-info.common.yes' }
+        : { text: 'No', locale: 'dialogs.model-info.common.no' };
+}
+
+// who can use a VRM1.x avatar
+const AVATAR_PERMISSION_MAP = {
+    onlyAuthor: {
+        text: 'Only the authors',
+        locale: 'dialogs.model-info.vrm1.avatar-permission.only-author'
+    },
+    onlySeparatelyLicensedPerson: {
+        text: 'Only separately licensed persons',
+        locale: 'dialogs.model-info.vrm1.avatar-permission.only-separately-licensed'
+    },
+    everyone: {
+        text: 'Everyone',
+        locale: 'dialogs.model-info.vrm1.avatar-permission.everyone'
+    }
+};
+
+// how can a VRM1.x avatar be commercially used
+const COMMERCIAL_USAGE_MAP = {
+    personalNonProfit: {
+        text: 'Personal use (non-profit)',
+        locale: 'dialogs.model-info.vrm1.commercial-usage.personal-non-profit'
+    },
+    personalProfit: {
+        text: 'Personal use (profit allowed)',
+        locale: 'dialogs.model-info.vrm1.commercial-usage.personal-profit'
+    },
+    corporation: {
+        text: 'Corporate use',
+        locale: 'dialogs.model-info.vrm1.commercial-usage.corporate'
+    }
+};
+
+// can a VRM1.x avatar be modified
+const MODIFICATION_MAP = {
+    prohibited: {
+        text: 'Modification prohibited',
+        locale: 'dialogs.model-info.vrm1.modification.prohibited'
+    },
+    allowModification: {
+        text: 'Modification allowed',
+        locale: 'dialogs.model-info.vrm1.modification.allowed'
+    },
+    allowModificationRedistribution: {
+        text: 'Modification and redistribution allowed',
+        locale: 'dialogs.model-info.vrm1.modification.allowed-redistribution'
+    }
+};
+
+// can a VRM0.x avatar be used
+const USAGE_MAP_VRM0 = {
+    Disallow: {
+        text: 'Not allowed',
+        locale: 'dialogs.model-info.vrm0.usage.disallow'
+    },
+    Allow: {
+        text: 'Allowed',
+        locale: 'dialogs.model-info.vrm0.usage.allow'
+    }
+};
+
+// license strings from a VRM0.x
+// i though vrm1 would also use this map, but apparently there's no license property, idk
+const LICENSE_MAP_VRM0 = {
+    'CC0': { text: 'CC0', locale: 'dialogs.model-info.vrm0.license.cc0' },
+    'CC_BY': { text: 'CC BY', locale: 'dialogs.model-info.vrm0.license.cc-by' },
+    'CC_BY_NC': { text: 'CC BY-NC', locale: 'dialogs.model-info.vrm0.license.cc-by-nc' },
+    'CC_BY_SA': { text: 'CC BY-SA', locale: 'dialogs.model-info.vrm0.license.cc-by-sa' },
+    'CC_BY_NC_SA': { text: 'CC BY-NC-SA', locale: 'dialogs.model-info.vrm0.license.cc-by-nc-sa' },
+    'Redistribution_Prohibited': { text: 'Redistribution prohibited', locale: 'dialogs.model-info.vrm0.license.redistribution-prohibited' }
+};
 
 function promptOpenFile() {
     return new Promise((resolve) => {

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shortcuts</title>
+
+<!-- Configuração do diálogo -->
+<meta name="dialog-show-close-button" content="true">
+<meta name="dialog-prefered-width" content="600">
+
+<style>
+    .shortcuts {
+        padding: 22px 28px 16px;
+        box-sizing: border-box;
+    }
+
+    /* main grid */
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+    }
+
+    /* sections */
+    .section h3 {
+        margin: 0 0 14px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .shortcut {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 18px;
+        align-items: center;
+        padding: 6px 0;
+    }
+
+    .keys {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        min-width: 120px;
+    }
+
+    kbd {
+        background: var(--background-color-3);
+        border: 1px solid var(--border-field-color);
+        font-family: var(--font-text);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: var(--shadow);
+        white-space: nowrap;
+    }
+
+    .desc {
+        font-size: 14px;
+        color: var(--text-color);
+    }
+
+    /* pages */
+    .page {
+        display: none;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    /* pager */
+    .pager {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 0 4px;
+    }
+
+    .dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: var(--background-color-3);
+        color: var(--button-color);
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .dot.active {
+        background: var(--field-color);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="shortcuts">
+
+    <!-- PAGE 1 -->
+    <div class="page active">
+        <div class="grid">
+            <div class="section">
+                <h3 data-locale="dialogs.shortcuts.general">General</h3>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Ctrl</kbd>+<kbd>O</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.open-model">Open model</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Left click</kbd>+<kbd>Drag</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.orbit-around">Orbit around</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Mouse scroll</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.zoom">Zoom</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Right click</kbd>+<kbd>Drag</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.pan">Pan</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Space</kbd>/<kbd>P</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.play-pause">Play/Pause</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>R</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.general.recenter-camera">Recenter camera</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 data-locale="dialogs.shortcuts.window">Window</h3>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>F11</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.window.fullscreen">Fullscreen</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Ctrl</kbd>+<kbd>,</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.window.settings">Settings</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>Ctrl</kbd>+<kbd>?</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.window.keyboard-shortcuts">Keyboard shortcuts</div>
+                </div>
+
+                <div class="shortcut">
+                    <div class="keys"><kbd>F1</kbd></div>
+                    <div class="desc" data-locale="dialogs.shortcuts.window.about-figure">About Figure</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pager -->
+    <div class="pager">
+        <button class="dot active">1</button>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const pages = document.querySelectorAll(".page");
+        const dots = document.querySelectorAll(".dot");
+
+        dots.forEach((dot, i) => {
+            dot.addEventListener("click", () => {
+                pages.forEach(p => p.classList.remove("active"));
+                dots.forEach(d => d.classList.remove("active"));
+
+                pages[i].classList.add("active");
+                dot.classList.add("active");
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

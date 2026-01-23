@@ -199,20 +199,6 @@
                     .catch((err) => console.error("Copy failed:", err));
             }
 
-            function showLandingPage() {
-                showMessageFromFile('landing.html', false, true, false, false);
-
-                const landingKeyHandler = (event) => {
-                    if (/^[a-zA-Z0-9]$/.test(event.key)) {
-                        fadeOutAllDialogs();
-                        editor.focus();
-                        document.removeEventListener("keydown", landingKeyHandler);
-                    }
-                };
-
-                document.addEventListener("keydown", landingKeyHandler);
-            }
-
             updateVersionLabel();
         </script>
     </body>

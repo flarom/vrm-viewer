@@ -53,15 +53,19 @@
 							<span data-locale="app.sidebar.header-more-menu.model-information">Model information</span>
 						</button>
 						<hr>
-						<button class="text-button" onmouseup="showMessageFromFile('dialog/settings.html', true, false, true, true, 600); hideAllMenus()">
-							<span data-locale="app.sidebar.header-more-menu.settings">Settings</span>
-							<kbd>Ctrl+,</kbd>
-						</button>
 						<button class="text-button" onmouseup="document.body.requestFullscreen();">
 							<span data-locale="app.sidebar.header-more-menu.fullscreen">Fullscreen</span>
 							<kbd>F11</kbd>
 						</button>
 						<hr>
+						<button class="text-button" onmouseup="showMessageFromFile('dialog/settings.html'); hideAllMenus()">
+							<span data-locale="app.sidebar.header-more-menu.settings">Settings</span>
+							<kbd>Ctrl+,</kbd>
+						</button>
+						<button class="text-button" onmouseup="showMessageFromFile('dialog/shortcuts.html'); hideAllMenus()">
+							<span data-locale="app.sidebar.header-more-menu.keyboard-shortcuts">Keyboard shortcuts</span>
+							<kbd>Ctrl+?</kbd>
+						</button>
 						<button class="text-button" onmouseup="showMessageFromFile('dialog/about.html'); hideAllMenus()">
 							<span data-locale="app.sidebar.header-more-menu.about-figure">About Figure</span>
 							<kbd>F1</kbd>
@@ -1364,7 +1368,7 @@
 
 			const horizontalAngle = flatForward.angleTo(flatTarget);
 
-			const MAX_BACK_ANGLE = THREE.MathUtils.degToRad(110);
+			const MAX_BACK_ANGLE = THREE.MathUtils.degToRad(140);
 			const FADE_RANGE = THREE.MathUtils.degToRad(30);
 
 			let backFactor = 1;
@@ -1586,7 +1590,7 @@
 			resetCameraAnimId = requestAnimationFrame(step);
 		}
 
-		if (resetCameraBtn) resetCameraBtn.addEventListener('click', () => smoothResetCamera(600));
+		if (resetCameraBtn) resetCameraBtn.addEventListener('click', () => {smoothResetCamera(600); fovRange.value = 30; camera.fov = 30.0; camera.updateProjectionMatrix();});
 
 		if (modelInfoBtn) {
 			modelInfoBtn.addEventListener('mouseup', () => {
@@ -1799,6 +1803,9 @@
 			if (e.key === 'r') {
 				e.preventDefault();
 				smoothResetCamera(600);
+				fovRange.value = 30;
+				camera.fov = 30.0;
+				camera.updateProjectionMatrix();
 				return;
 			}
 

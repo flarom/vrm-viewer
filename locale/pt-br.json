@@ -4,7 +4,7 @@
         "name": "Portuguese (Brazil)",
         "nativeName": "Português do Brasil",
         "direction": "ltr",
-        "status": "10%",
+        "status": "99%",
         "translators": [
             {
                 "name": "Flarom",
@@ -34,6 +34,7 @@
                     "app.sidebar.header-more-menu.open-model": "Abrir modelo",
                     "app.sidebar.header-more-menu.model-information": "Informações do modelo",
                     "app.sidebar.header-more-menu.settings": "Configurações",
+                    "app.sidebar.header-more-menu.keyboard-shortcuts": "Atalhos de teclado",
                     "app.sidebar.header-more-menu.fullscreen": "Tela cheia",
                     "app.sidebar.header-more-menu.about-figure": "Sobre o Figure"
                 },
@@ -134,7 +135,15 @@
                     "dialogs.model-info.vrm0.avatar-personality.commercial-use": "Uso comercial",
                     "dialogs.model-info.vrm0.avatar-personality.permission-information-url": "URL com informação de permissão de uso",
                     "dialogs.model-info.vrm0.redistribution-and-alteration": "Redistribuição e alteração",
-                    "dialogs.model-info.vrm0.redistribution-and-alteration.license": "Licensa"
+                    "dialogs.model-info.vrm0.redistribution-and-alteration.license": "Licensa",
+                    "dialogs.model-info.vrm0.usage.disallow": "Não permitido",
+                    "dialogs.model-info.vrm0.usage.allow": "Permitido",
+                    "dialogs.model-info.vrm0.license.cc0": "CC0",
+                    "dialogs.model-info.vrm0.license.cc-by": "CC BY",
+                    "dialogs.model-info.vrm0.license.cc-by-nc": "CC BY-NC",
+                    "dialogs.model-info.vrm0.license.cc-by-sa": "CC BY-SA",
+                    "dialogs.model-info.vrm0.license.cc-by-nc-sa": "CC BY-NC-SA",
+                    "dialogs.model-info.vrm0.license.redistribution-prohibited": "Redistribuição proíbida"
                 },
                 "VRM 1.0": {
                     "dialogs.model-info.vrm1.avatar-information": "Informações do avatar",
@@ -145,6 +154,7 @@
                     "dialogs.model-info.vrm1.avatar-information.contact-information": "Informação de contato",
                     "dialogs.model-info.vrm1.avatar-information.references": "Referências",
                     "dialogs.model-info.vrm1.avatar-information.third-party-licenses": "Licenças de terceiros",
+                    "dialogs.model-info.vrm1.avatar-information.vrm-version": "Versão do VRM",
                     "dialogs.model-info.vrm1.avatar-permission": "Permissões do avatar",
                     "dialogs.model-info.vrm1.avatar-permission.avatar-use-permission": "Permissão de uso do avatar",
                     "dialogs.model-info.vrm1.avatar-permission.violent-usage": "Uso violento",
@@ -152,14 +162,42 @@
                     "dialogs.model-info.vrm1.avatar-permission.political-usage": "Uso político",
                     "dialogs.model-info.vrm1.avatar-permission.antisocial-usage": "Uso antisocial",
                     "dialogs.model-info.vrm1.avatar-permission.commercial-usage": "Uso comercial",
+                    "dialogs.model-info.vrm1.avatar-permission.only-author": "Apenas autores(as)",
+                    "dialogs.model-info.vrm1.avatar-permission.only-separately-licensed": "Apenas pessoas licensiadas separadamente",
+                    "dialogs.model-info.vrm1.avatar-permission.everyone": "Todo mundo",
                     "dialogs.model-info.vrm1.redistribution-and-alteration": "Redistribuição e alteração",
                     "dialogs.model-info.vrm1.redistribution-and-alteration.redistribution": "Redistribuição",
                     "dialogs.model-info.vrm1.redistribution-and-alteration.alterations": "Alterações",
-                    "dialogs.model-info.vrm1.redistribution-and-alteration.attribution": "Atribuição"
+                    "dialogs.model-info.vrm1.redistribution-and-alteration.attribution": "Atribuição",
+                    "dialogs.model-info.vrm1.commercial-usage.personal-non-profit": "Uso pessoal (não comercial)",
+                    "dialogs.model-info.vrm1.commercial-usage.personal-profit": "Uso pessoal (comercial permetido)",
+                    "dialogs.model-info.vrm1.commercial-usage.corporate": "Uso corporativo",
+                    "dialogs.model-info.vrm1.modification.prohibited": "Alterações proíbidas",
+                    "dialogs.model-info.vrm1.modification.allowed": "Alterações permitidas",
+                    "dialogs.model-info.vrm1.modification.allowed-redistribution": "Alterações e distribuíção permitida"
                 },
                 "VRM UNKNOWN": {
                     "dialogs.model-info.vrm-unknown.version": "Versão"
+                },
+                "COMMON": {
+                    "dialogs.model-info.common.unknown": "Desconhecido",
+                    "dialogs.model-info.common.yes": "Sim",
+                    "dialogs.model-info.common.no": "Não"
                 }
+            },
+            "KEYBOARD SHORTCUTS": {
+                "dialogs.shortcuts.general": "Geral",
+                "dialogs.shortcuts.general.open-model": "Abrir modelo",
+                "dialogs.shortcuts.general.orbit-around": "Orbitar em volta",
+                "dialogs.shortcuts.general.zoom": "Zoom",
+                "dialogs.shortcuts.general.pan": "Mover",
+                "dialogs.shortcuts.general.play-pause": "Iniciar/Pausar",
+                "dialogs.shortcuts.general.recenter-camera": "Recentralizar câmera",
+                "dialogs.shortcuts.window": "Janela",
+                "dialogs.shortcuts.window.fullscreen": "Tela cheia",
+                "dialogs.shortcuts.window.settings": "Configurações",
+                "dialogs.shortcuts.window.keyboard-shortcuts": "Atalhos de teclado",
+                "dialogs.shortcuts.window.about-figure": "Sobre o Figure"
             }
         }
     }

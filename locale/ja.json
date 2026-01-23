@@ -4,7 +4,7 @@
         "name": "Japanese",
         "nativeName": "日本語",
         "direction": "ltr",
-        "status": "10%",
+        "status": "90%",
         "translators": [
             {
                 "name": "AI generated",
@@ -141,6 +141,7 @@
                     "dialogs.model-info.vrm1.avatar-information.contact-information": "連絡先情報",
                     "dialogs.model-info.vrm1.avatar-information.references": "参照",
                     "dialogs.model-info.vrm1.avatar-information.third-party-licenses": "サードパーティライセンス",
+                    "dialogs.model-info.vrm1.avatar-information.vrm-version": "VRM バージョン",
                     "dialogs.model-info.vrm1.avatar-permission": "アバターの利用許可",
                     "dialogs.model-info.vrm1.avatar-permission.avatar-use-permission": "アバター使用許可",
                     "dialogs.model-info.vrm1.avatar-permission.violent-usage": "暴力的利用",
