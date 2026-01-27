@@ -815,7 +815,7 @@ button.danger:hover {
     border-radius: 8px;
 
 	font-family: inherit;
-	transition: color 0.2s ease;
+	transition: color 0.2s ease, background-color 0.2s ease;
     opacity: 0.75;
 }
 

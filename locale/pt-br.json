@@ -91,6 +91,7 @@
             },
             "MAIN": {
                 "app.main.header.toggle-sidebar": "Alternar barra lateral",
+                "app.main.header.view-in-ar": "Ver em RA",
                 "app.main.header.play-pause-animation": "Tocar / Pausar animação (P)",
                 "app.main.header.recenter": "Recentralizar (R)"
             }

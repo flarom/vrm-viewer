@@ -4,11 +4,11 @@
         "name": "Japanese",
         "nativeName": "日本語",
         "direction": "ltr",
-        "status": "90%",
+        "status": "99%",
         "translators": [
             {
                 "name": "AI generated",
-                "role": "",
+                "role": "slop-maker",
                 "links": {}
             }
         ]
@@ -30,6 +30,7 @@
                     "app.sidebar.header-more-menu.open-model": "モデルを開く",
                     "app.sidebar.header-more-menu.model-information": "モデル情報",
                     "app.sidebar.header-more-menu.settings": "設定",
+                    "app.sidebar.header-more-menu.keyboard-shortcuts": "キーボードショートカット",
                     "app.sidebar.header-more-menu.fullscreen": "全画面表示",
                     "app.sidebar.header-more-menu.about-figure": "Figure について"
                 },
@@ -86,6 +87,7 @@
             },
             "MAIN": {
                 "app.main.header.toggle-sidebar": "サイドバーを切り替え",
+                "app.main.header.view-in-ar": "ARで見る",
                 "app.main.header.play-pause-animation": "アニメーション 再生 / 一時停止 (P)",
                 "app.main.header.recenter": "再センタリング (R)"
             }
@@ -130,7 +132,15 @@
                     "dialogs.model-info.vrm0.avatar-personality.commercial-use": "商用利用",
                     "dialogs.model-info.vrm0.avatar-personality.permission-information-url": "利用許可情報 URL",
                     "dialogs.model-info.vrm0.redistribution-and-alteration": "再配布と改変",
-                    "dialogs.model-info.vrm0.redistribution-and-alteration.license": "ライセンス"
+                    "dialogs.model-info.vrm0.redistribution-and-alteration.license": "ライセンス",
+                    "dialogs.model-info.vrm0.usage.disallow": "禁止",
+                    "dialogs.model-info.vrm0.usage.allow": "許可",
+                    "dialogs.model-info.vrm0.license.cc0": "CC0",
+                    "dialogs.model-info.vrm0.license.cc-by": "CC BY",
+                    "dialogs.model-info.vrm0.license.cc-by-nc": "CC BY-NC",
+                    "dialogs.model-info.vrm0.license.cc-by-sa": "CC BY-SA",
+                    "dialogs.model-info.vrm0.license.cc-by-nc-sa": "CC BY-NC-SA",
+                    "dialogs.model-info.vrm0.license.redistribution-prohibited": "再配布禁止"
                 },
                 "VRM 1.0": {
                     "dialogs.model-info.vrm1.avatar-information": "アバター情報",
@@ -149,14 +159,42 @@
                     "dialogs.model-info.vrm1.avatar-permission.political-usage": "政治的利用",
                     "dialogs.model-info.vrm1.avatar-permission.antisocial-usage": "反社会的利用",
                     "dialogs.model-info.vrm1.avatar-permission.commercial-usage": "商用利用",
+                    "dialogs.model-info.vrm1.avatar-permission.only-author": "作者のみ",
+                    "dialogs.model-info.vrm1.avatar-permission.only-separately-licensed": "別途ライセンスされた者のみ",
+                    "dialogs.model-info.vrm1.avatar-permission.everyone": "すべての人",
                     "dialogs.model-info.vrm1.redistribution-and-alteration": "再配布と改変",
                     "dialogs.model-info.vrm1.redistribution-and-alteration.redistribution": "再配布",
                     "dialogs.model-info.vrm1.redistribution-and-alteration.alterations": "改変",
-                    "dialogs.model-info.vrm1.redistribution-and-alteration.attribution": "クレジット表記"
+                    "dialogs.model-info.vrm1.redistribution-and-alteration.attribution": "クレジット表記",
+                    "dialogs.model-info.vrm1.commercial-usage.personal-non-profit": "個人利用（非商用）",
+                    "dialogs.model-info.vrm1.commercial-usage.personal-profit": "個人利用（商用可）",
+                    "dialogs.model-info.vrm1.commercial-usage.corporate": "法人利用",
+                    "dialogs.model-info.vrm1.modification.prohibited": "改変禁止",
+                    "dialogs.model-info.vrm1.modification.allowed": "改変可",
+                    "dialogs.model-info.vrm1.modification.allowed-redistribution": "改変および再配布可"
                 },
                 "VRM UNKNOWN": {
                     "dialogs.model-info.vrm-unknown.version": "バージョン"
+                },
+                "COMMON": {
+                    "dialogs.model-info.common.unknown": "不明",
+                    "dialogs.model-info.common.yes": "はい",
+                    "dialogs.model-info.common.no": "いいえ"
                 }
+            },
+            "KEYBOARD SHORTCUTS": {
+                "dialogs.shortcuts.general": "一般",
+                "dialogs.shortcuts.general.open-model": "モデルを開く",
+                "dialogs.shortcuts.general.orbit-around": "回転",
+                "dialogs.shortcuts.general.zoom": "ズーム",
+                "dialogs.shortcuts.general.pan": "移動",
+                "dialogs.shortcuts.general.play-pause": "開始/一時停止",
+                "dialogs.shortcuts.general.recenter-camera": "カメラを中央に戻す",
+                "dialogs.shortcuts.window": "ウィンドウ",
+                "dialogs.shortcuts.window.fullscreen": "全画面表示",
+                "dialogs.shortcuts.window.settings": "設定",
+                "dialogs.shortcuts.window.keyboard-shortcuts": "キーボードショートカット",
+                "dialogs.shortcuts.window.about-figure": "Figure について"
             }
         }
     }

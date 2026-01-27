@@ -224,12 +224,23 @@ select {
     width:28px;
     height:28px;
     border-radius:50%;
-    background:var(--highlight-color);
+    background:var(--text-color);
     position:absolute;
     left:56px;
     top:56px;
     transform:translate(0,0);
     box-shadow:var(--shadow-light);
+    cursor: -webkit-grab; cursor: grab;
+}
+
+.joystick-handle:active {
+    cursor: -webkit-grabbing; cursor: grabbing;
+}
+.joystick-container:active {
+    cursor: -webkit-grabbing; cursor: grabbing;
+}
+.joystick-container:active .joystick-handle {
+    background: var(--highlight-color);
 }
 
 input[type="range"] {
