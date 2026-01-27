@@ -259,6 +259,7 @@
 	</script>
 
 	<script type="module">
+		//MARK: Imports
 		import * as THREE from 'three';
 		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -268,368 +269,131 @@
 		import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 		import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-		// #region DOM Elements
-		// DOM elements
-		const mainWrapper = document.getElementById('mainWrapper');
+		//MARK: DOM Elements
+		const mainWrapper              = document.getElementById('mainWrapper');
+		// model info
+		const vrmModelNameLabel        = document.getElementById('vrm-model-name');
+		const vrmAuthorNameLabel       = document.getElementById('vrm-author-name');
+		const modelInfoBtn             = document.getElementById('modelInfoBtn');
+		// open file
+		const openFileBtn              = document.getElementById('openFileBtn'); // located on the sidebar header (desktop only)
+		const openFileBtn2             = document.getElementById('openFileBtn2'); // located on the sidebar menu
+		// animation controllers
+		const animationSelect          = document.getElementById('animation-select');
+		const playPauseBtn             = document.getElementById('playPauseBtn');
+		const stopBtn                  = document.getElementById('stop-btn');
+		const blinkCbx                 = document.getElementById('blink-chk');
+		const resetLookBtn             = document.getElementById('reset-look-btn');
+		const resetExpressionBtn       = document.getElementById('reset-expression-btn');
+		const followHeadChk            = document.getElementById('followHeadChk');
+		// light controllers
+		const lightPosXRange           = document.getElementById('light-pos-x');
+		const lightPosYRange           = document.getElementById('light-pos-y');
+		const lightPosZRange           = document.getElementById('light-pos-z');
+		const lightIntensityRange      = document.getElementById('light-intensity');
+		const lightColorBtn            = document.getElementById('light-color');
+		const setLightAsBgAvgBtn       = document.getElementById('setLightAsBgAvgBtn');
+		const resetLightBtn            = document.getElementById('reset-light-btn');
+		// background controllers
+		const backgroundColorBtn       = document.getElementById('background-color');
+		const setBackgroundImageBtn    = document.getElementById('set-background-image-btn');
+		const backgroundImageFileInput = document.getElementById('backgroundImageFileInput');
+		const skyboxRotationRange      = document.getElementById('skybox-rotation-range');
+		const skyboxBlurRange          = document.getElementById('skybox-blur-range');
+		// camera controllers
+		const fovRange                 = document.getElementById('fov-range');
+		const renderMaterialsSelect    = document.getElementById('render-materials');
+		const photoBtn                 = document.getElementById('photo-btn');
+		const enterARBtn               = document.getElementById('enterARBtn');
 
-		const playPauseBtn = document.getElementById('playPauseBtn');
-		const stopBtn = document.getElementById('stop-btn');
+		//MARK: Globals
+		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 0.75, 4.0);
+		const DEFAULT_CONTROLS_TARGET = new THREE.Vector3(0.0, 1.0, 0.0);
+		const LAST_VRM_KEY = 'vrmViewer.lastVrm';
+		let renderer, camera, controls, scene, light, ambientLight;
+		let currentVrm = undefined;
+		let currentMixer = undefined;
+		let currentAction = undefined;
+		let vrmaAnimationClip = undefined;
+		let groundShadow = null;
 
-		const vrmModelName = document.getElementById('vrm-model-name');
-		const vrmAuthorName = document.getElementById('vrm-author-name');
-
-		const openFileBtn = document.getElementById('openFileBtn');
-		const openFileBtn2 = document.getElementById('openFileBtn2');
-		const modelInfoBtn = document.getElementById('modelInfoBtn');
-
-		// animation selects
-		const animationSelect = document.getElementById('animation-select');
-		const blinkCbx = document.getElementById('blink-chk');
 		let blinkEnabled = false;
 		let blinkTimeout = null;
 		let blinkAnimating = false;
 
-		// light
-		const lightPosXInput = document.getElementById('light-pos-x');
-		const lightPosYInput = document.getElementById('light-pos-y');
-		const lightPosZInput = document.getElementById('light-pos-z');
-		const lightIntensityInput = document.getElementById('light-intensity');
-		const lightColorInput = document.getElementById('light-color');
-		const resetLightBtn = document.getElementById('reset-light-btn');
-		const setLightAsBgAvgBtn = document.getElementById('setLightAsBgAvgBtn');
+		let headFollowEnabled = false;
+		let headFollowStrength = 0.5;
 
-		// background
-		const backgroundColorInput = document.getElementById('background-color');
-		const setBackgroundImageBtn = document.getElementById('set-background-image-btn');
-		const backgroundImageFileInput = document.getElementById('backgroundImageFileInput');
-		const skyboxRotationRange = document.getElementById('skybox-rotation-range');
-		const skyboxBlurRange = document.getElementById('skybox-blur-range');
-		const fovRange = document.getElementById('fov-range');
+		const VRM_MODEL_URL = './VRM/default.vrm'; // Default VRM model
 
-		// events
-		lightPosXInput.addEventListener('input', (e) => {
-			if (light) {
-				light.position.x = parseFloat(e.target.value);
-				showLightMarker();
-			}
-		});
+		// VRMA animations dictionary: map an id/key (used by buttons) to URL
+		const VRMA_ANIMATIONS = {
+			// i'm commenting this animations out bc I think they're kinda bad :P
+			// not willing to actually removing them tho, sry for the author
+			// 'Angry'       : './VRMA/tk256ailab/Angry.vrma',
+			// 'Blush'       : './VRMA/tk256ailab/Blush.vrma',
+			// 'Clapping'    : './VRMA/tk256ailab/Clapping.vrma',
+			// 'Goodbye'     : './VRMA/tk256ailab/Goodbye.vrma',
+			// 'Jump'        : './VRMA/tk256ailab/Jump.vrma',
+			// 'LookAround'  : './VRMA/tk256ailab/LookAround.vrma',
+			// 'Relax'       : './VRMA/tk256ailab/Relax.vrma',
+			// 'Sad'         : './VRMA/tk256ailab/Sad.vrma',
+			// 'Sleepy'      : './VRMA/tk256ailab/Sleepy.vrma',
+			// 'Surprised'   : './VRMA/tk256ailab/Surprised.vrma',
+			// 'Thinking'    : './VRMA/tk256ailab/Thinking.vrma',
+			'Idle'			 : './VRMA/flarom/idle.vrma',
+			'Walk'           : './VRMA/flarom/walk.vrma',
+			'Show Full Body' : './VRMA/VRoid Project/ShowFullBody.vrma',
+			'Greeting'       : './VRMA/VRoid Project/Greeting.vrma',
+			'Peace Sign'     : './VRMA/VRoid Project/PeaceSign.vrma',
+			'Shoot'          : './VRMA/VRoid Project/Shoot.vrma',
+			'Spin'           : './VRMA/VRoid Project/Spin.vrma',
+			'Model Pose'     : './VRMA/VRoid Project/ModelPose.vrma',
+			'Squat'          : './VRMA/VRoid Project/Squat.vrma'
+		};
 
-		lightPosYInput.addEventListener('input', (e) => {
-			if (light) {
-				light.position.y = parseFloat(e.target.value);
-				showLightMarker();
-			}
-		});
+		const SKYBOXES = {
+			'Day' : './skybox/day.png',
+			'Dusk' : './skybox/dusk.png',
+			'Night' : './skybox/night.png'
+		};
 
-		lightPosZInput.addEventListener('input', (e) => {
-			if (light) {
-				light.position.z = parseFloat(e.target.value);
-				showLightMarker();
-			}
-		});
+		//MARK: Three.js Setup
+		(function initThree(){
+			renderer = new THREE.WebGLRenderer({ antialias:true });
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setPixelRatio(window.devicePixelRatio || 1);
+			renderer.outputEncoding = THREE.sRGBEncoding;
+			renderer.domElement.className = 'render';
+			mainWrapper.appendChild(renderer.domElement);
 
-		lightIntensityInput.addEventListener('input', (e) => {
-			if (light) {
-				light.intensity = parseFloat(e.target.value);
-				showLightMarker();
-			}
-		});
+			camera = new THREE.PerspectiveCamera(30.0, window.innerWidth / window.innerHeight, 0.1, 20.0);
+			camera.position.copy(DEFAULT_CAMERA_POSITION);
 
-		lightColorInput.addEventListener('input', (e) => {
-			if (light) {
-				light.color = new THREE.Color(e.target.value);
-				showLightMarker();
-			}
-		});
-		resetLightBtn.addEventListener('click', (e) => {
-			// reset light to default values
-			if (light) {
-				light.position.set(0.5, 1.0, 1.0);
-				light.intensity = 3.0;
-				light.color = new THREE.Color('#ffffff');
-			}
-			// update inputs
-			lightPosXInput.value = '0.5';
-			lightPosYInput.value = '1.0';
-			lightPosZInput.value = '1.0';
-			lightIntensityInput.value = '3';
-			lightColorInput.value = '#ffffff';
-		});
-		setLightAsBgAvgBtn.addEventListener('click', (e) => {
-			e.preventDefault();
+			controls = new OrbitControls(camera, renderer.domElement);
+			controls.screenSpacePanning = true;
+			controls.target.copy(DEFAULT_CONTROLS_TARGET);
+			controls.update();
 
-			if (!scene || !light) return;
+			scene = new THREE.Scene();
+			const bodyBg = getComputedStyle(document.body).getPropertyValue('--background-color-2').trim();
+			const rootBg = getComputedStyle(document.documentElement).getPropertyValue('--background-color-2').trim();
+			scene.background = new THREE.Color(bodyBg || rootBg || '#222222');
 
-			const bg = scene.background;
+			light = new THREE.DirectionalLight(0xffffff, 3.0);
+			light.position.set(1.0, 1.0, 1.0).normalize();
+			scene.add(light);
+			ambientLight = new THREE.AmbientLight(0xffffff, 0.0);
+			scene.add(ambientLight);
+		})();
 
-			if (bg && bg.isTexture && bg.image) {
+		//MARK: Loader plugins
+		const loader = new GLTFLoader();
+		loader.crossOrigin = 'anonymous';
+		loader.register(parser => new VRMLoaderPlugin(parser));
+		loader.register(parser => new VRMAnimationLoaderPlugin(parser));
 
-				const canvas = document.createElement('canvas');
-				const ctx = canvas.getContext('2d');
-
-				const img = bg.image;
-				const size = 64; // downscale for performance
-				canvas.width = size;
-				canvas.height = size;
-
-				ctx.drawImage(img, 0, 0, size, size);
-				const data = ctx.getImageData(0, 0, size, size).data;
-
-				let r = 0, g = 0, b = 0;
-				let totalWeight = 0;
-
-				for (let i = 0; i < data.length; i += 4) {
-
-					// sRGB -> linear
-					let sr = data[i]     / 255;
-					let sg = data[i + 1] / 255;
-					let sb = data[i + 2] / 255;
-
-					sr = sr <= 0.04045 ? sr / 12.92 : Math.pow((sr + 0.055) / 1.055, 2.4);
-					sg = sg <= 0.04045 ? sg / 12.92 : Math.pow((sg + 0.055) / 1.055, 2.4);
-					sb = sb <= 0.04045 ? sb / 12.92 : Math.pow((sb + 0.055) / 1.055, 2.4);
-
-					// perceived luminance
-					const lum = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
-
-					// ignore very dark pixels
-					if (lum < 0.03) continue;
-
-					// prioritize lighter colors
-					const weight = Math.pow(lum, 0.6);
-
-					r += sr * weight;
-					g += sg * weight;
-					b += sb * weight;
-					totalWeight += weight;
-				}
-
-				if (totalWeight === 0) return;
-
-				r /= totalWeight;
-				g /= totalWeight;
-				b /= totalWeight;
-
-				// linear -> sRGB
-				r = r <= 0.0031308 ? r * 12.92 : 1.055 * Math.pow(r, 1 / 2.4) - 0.055;
-				g = g <= 0.0031308 ? g * 12.92 : 1.055 * Math.pow(g, 1 / 2.4) - 0.055;
-				b = b <= 0.0031308 ? b * 12.92 : 1.055 * Math.pow(b, 1 / 2.4) - 0.055;
-
-				// tone boosting
-				const color = new THREE.Color(
-					THREE.MathUtils.clamp(r * 1.1, 0, 1),
-					THREE.MathUtils.clamp(g * 1.1, 0, 1),
-					THREE.MathUtils.clamp(b * 1.1, 0, 1)
-				);
-
-				light.color.copy(color);
-				lightColorInput.value = `#${color.getHexString()}`;
-
-			}
-			else if (bg && bg.isColor) {
-				light.color.copy(bg);
-				lightColorInput.value = `#${bg.getHexString()}`;
-			}
-		});
-		backgroundColorInput.addEventListener('input', (e) => {
-			if (scene) scene.background = new THREE.Color(e.target.value);
-		});
-		setBackgroundImageBtn.addEventListener('click', (e) => {
-			e.preventDefault();
-			backgroundImageFileInput.click();
-		});
-
-		backgroundImageFileInput.addEventListener('change', (ev) => {
-			const f = ev.target.files && ev.target.files[0];
-			if (!f) return;
-
-			setSkyboxFromFile(f);
-			backgroundImageFileInput.value = '';
-		});
-
-		skyboxRotationRange.addEventListener('input', (e) => {
-			const angle = THREE.MathUtils.degToRad(e.target.value);
-
-			if (scene && scene.background) {
-				scene.backgroundRotation.y = angle;
-			}
-		});
-		skyboxBlurRange.addEventListener('input', (e) => {
-			scene.backgroundBlurriness = e.target.value;
-		});
-		fovRange.addEventListener('input', (e) => {
-			const fov = parseFloat(e.target.value);
-
-			if (camera) {
-				camera.fov = fov;
-				camera.updateProjectionMatrix();
-			}
-		});
-		const renderMaterialsSelect = document.getElementById('render-materials');
-
-		renderMaterialsSelect.addEventListener('change', () => {
-			if (!currentVrm?.scene) return;
-
-			const mode = renderMaterialsSelect.value;
-
-			currentVrm.scene.traverse(obj => {
-				if (!obj.isMesh || !obj.material) return;
-
-				if (!obj.userData.__originalMaterial) {
-					obj.userData.__originalMaterial = obj.material;
-				}
-
-				const original = obj.userData.__originalMaterial;
-				const materials = Array.isArray(original) ? original : [original];
-
-				let newMaterials = materials.map(mat => {
-					let newMat = null;
-
-					switch (mode) {
-						case 'render-materials-mtoon':
-							return mat;
-
-						case 'render-materials-texture':
-							return new THREE.MeshBasicMaterial({
-								map: mat.map || mat.baseMap || null,
-								transparent: true,
-								depthWrite: true,
-								depthTest: true,
-								alphaTest: 0.001
-							});
-
-						case 'render-materials-solid':
-							return new THREE.MeshNormalMaterial();
-
-						case 'render-materials-wireframe': {
-							const color = getComputedStyle(document.body)
-								.getPropertyValue('--text-color')
-								.trim();
-							return new THREE.MeshNormalMaterial({
-								color,
-								wireframe: true
-							});
-						}
-
-						case 'render-materials-face-orientation': {
-							const cssGreen = getComputedStyle(document.body)
-								.getPropertyValue('--color-green')
-								.trim();
-							const cssRed = getComputedStyle(document.body)
-								.getPropertyValue('--color-red')
-								.trim();
-
-							function cssColorToVec3(css) {
-								const ctx = document.createElement('canvas').getContext('2d');
-								ctx.fillStyle = css;
-								ctx.fillRect(0, 0, 1, 1);
-								const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-								return new THREE.Vector3(r / 255, g / 255, b / 255);
-							}
-
-							return new THREE.ShaderMaterial({
-								side: THREE.DoubleSide,
-								uniforms: {
-									colorFront: { value: cssColorToVec3(cssGreen) },
-									colorBack:  { value: cssColorToVec3(cssRed) },
-									lightDir:   { value: new THREE.Vector3(0.3, 0.7, 0.6).normalize() }
-								},
-								vertexShader: `
-									varying vec3 vNormal;
-									void main() {
-										vNormal = normalize(normalMatrix * normal);
-										gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-									}
-								`,
-								fragmentShader: `
-									uniform vec3 colorFront;
-									uniform vec3 colorBack;
-									uniform vec3 lightDir;
-									varying vec3 vNormal;
-
-									void main() {
-										vec3 baseColor = gl_FrontFacing ? colorFront : colorBack;
-										float light = dot(normalize(vNormal), lightDir);
-										light = light * 0.5 + 0.5;
-										gl_FragColor = vec4(baseColor * light, 1.0);
-									}
-								`
-							});
-						}
-					}
-
-					return mat;
-				});
-
-				obj.material = Array.isArray(original) ? newMaterials : newMaterials[0];
-			});
-		});
-
-		// #endregion DOM Elements
-
-		// Wire Open model button to hidden file input
-		if (openFileBtn) {
-			openFileBtn.addEventListener('click', async (e) => {
-				e.preventDefault();
-				const file = await promptOpenFile();
-				if (file) await handleFileDrop(file);
-			});
-		}
-		if (openFileBtn2) {
-			openFileBtn2.addEventListener('click', async (e) => {
-				e.preventDefault();
-				const file = await promptOpenFile();
-				if (file) await handleFileDrop(file);
-			});
-		}
-
-		// #region Three.js Setup
-		// --- Three.js Setup ---
-		const renderer = new THREE.WebGLRenderer({ antialias: true });
-		renderer.setSize(window.innerWidth, window.innerHeight);
-		renderer.setPixelRatio(window.devicePixelRatio);
-		renderer.outputEncoding = THREE.sRGBEncoding; // Correct color space
-		renderer.domElement.className = "render"
-		mainWrapper.appendChild(renderer.domElement);
-
-		const camera = new THREE.PerspectiveCamera(30.0, window.innerWidth / window.innerHeight, 0.1, 20.0);
-		camera.position.set(0.0, 0.75, 4.0);
-		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 0.75, 4.0);
-		const DEFAULT_CONTROLS_TARGET = new THREE.Vector3(0.0, 1.0, 0.0);
-		
-		const controls = new OrbitControls(camera, renderer.domElement);
-		controls.screenSpacePanning = true;
-		controls.target.copy(DEFAULT_CONTROLS_TARGET);
-		controls.update();
-
-		const scene = new THREE.Scene();
-		// Use CSS variable `--background-color` for the scene background.
-		// Read from `body` (theme class) first, then fall back to `:root`, then a hard fallback.
-		const bodyBg = getComputedStyle(document.body).getPropertyValue('--background-color-2').trim();
-		const rootBg = getComputedStyle(document.documentElement).getPropertyValue('--background-color-2').trim();
-		const cssBg = bodyBg || rootBg || '#222222';
-		scene.background = new THREE.Color(cssBg);
-		// update background when theme changes
-		if (backgroundColorInput) backgroundColorInput.value = '#' + scene.background.getHexString();
-		
-		const light = new THREE.DirectionalLight(0xffffff, 3.0); // Increased intensity
-		light.position.set(1.0, 1.0, 1.0).normalize();
-		scene.add(light);
-
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0); // ambient light
-		scene.add(ambientLight);
-
-		// --- Global Variables for VRM and Animation ---
-		let currentVrm = undefined;
-		let currentMixer = undefined;
-		let currentAction = undefined;
-		let vrmaAnimationClip = undefined; // Store the final THREE.AnimationClip
-		let groundShadow = null;
-
-		const LAST_VRM_KEY = 'vrmViewer.lastVrm';
-		// #endregion Three.js Setup
-
-		// #region IndexedDB Helpers
+		//MARK: IDB
 		function openIdb() {
 			return new Promise((resolve, reject) => {
 				const req = indexedDB.open('vrmViewerDB', 1);
@@ -673,12 +437,8 @@
 			}));
 
 		}
-		// #endregion IndexedDB Helpers
 
-		// #region Last VRM Persistence
-		/**
-	 	* Save last VRM reference. For local files, store the blob in IndexedDB and save metadata in localStorage.
-	 	 */
+		//MARK: VRM Persistence (IDB)
 		function saveLastVrm(file, url, name) {
 			try {
 				if (file instanceof File || file instanceof Blob) {
@@ -705,10 +465,6 @@
 			}
 		}
 
-		/**
-		 * Try loading the last VRM stored in localStorage.
-		 * Returns true if a load was initiated, false otherwise.
-		 */
 		async function loadLastVrmFromStorage() {
 			try {
 				const raw = localStorage.getItem(LAST_VRM_KEY);
@@ -742,24 +498,21 @@
 			return false;
 		}
 
-		/** Replace currently displayed model with the default VRM file. */
 		async function replaceWithDefaultVrm() {
 			await loadVRM(VRM_MODEL_URL, 'default.vrm');
 		}
 
-		/** Clear the recent VRM entry from localStorage and update header. */
 		function clearRecentVrm() {
 			localStorage.removeItem(LAST_VRM_KEY);
 			// Try to remove blob from IndexedDB as well
 			deleteVrmFromIdb().catch(() => { /* ignore */ });
-			vrmModelName.textContent = '';
+			vrmModelNameLabel.textContent = '';
 			document.title = 'Figure - VRM & VRMA Model Viewer for Web';
-			vrmAuthorName.textContent = '';
+			vrmAuthorNameLabel.textContent = '';
 			showToast('Recent VRM removed.', 'info');
 		}
-		// #endregion Last VRM Persistence
 
-		// #region Dispose & Cleanup
+		//MARK: Dispose/Cleanup
 		/**
 		 * Safely dispose a loaded VRM: geometries, materials, textures and stop mixers.
 		 * @param {any} vrm VRM instance returned by the loader
@@ -812,64 +565,8 @@
 				console.warn('Error while disposing VRM:', e);
 			}
 		}
-		// #endregion Dispose & Cleanup
 
-		// #region Loader Plugins
-		// --- GLTF Loader with VRM and VRMA Plugins ---
-		const loader = new GLTFLoader();
-		loader.crossOrigin = 'anonymous';
-
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-
-		loader.register((parser) => {
-			return new VRMAnimationLoaderPlugin(parser);
-		});
-		// #endregion Loader Plugins
-
-		// #region File Paths
-		// --- File Paths ---
-		const VRM_MODEL_URL = './VRM/default.vrm'; // Fixed VRM model path (relative path)
-		// VRMA animations dictionary: map an id/key (used by buttons) to URL
-		// VRMA animations dictionary: map an id/key (used by buttons) to URL
-		const VRMA_ANIMATIONS = {
-			// 'Angry'       : './VRMA/tk256ailab/Angry.vrma',
-			// 'Blush'       : './VRMA/tk256ailab/Blush.vrma',
-			// 'Clapping'    : './VRMA/tk256ailab/Clapping.vrma',
-			// 'Goodbye'     : './VRMA/tk256ailab/Goodbye.vrma',
-			// 'Jump'        : './VRMA/tk256ailab/Jump.vrma',
-			// 'LookAround'  : './VRMA/tk256ailab/LookAround.vrma',
-			// 'Relax'       : './VRMA/tk256ailab/Relax.vrma',
-			// 'Sad'         : './VRMA/tk256ailab/Sad.vrma',
-			// 'Sleepy'      : './VRMA/tk256ailab/Sleepy.vrma',
-			// 'Surprised'   : './VRMA/tk256ailab/Surprised.vrma',
-			// 'Thinking'    : './VRMA/tk256ailab/Thinking.vrma',
-			'Idle'			 : './VRMA/flarom/idle.vrma',
-			'Walk'           : './VRMA/flarom/walk.vrma',
-			'Show Full Body' : './VRMA/VRoid Project/ShowFullBody.vrma',
-			'Greeting'       : './VRMA/VRoid Project/Greeting.vrma',
-			'Peace Sign'     : './VRMA/VRoid Project/PeaceSign.vrma',
-			'Shoot'          : './VRMA/VRoid Project/Shoot.vrma',
-			'Spin'           : './VRMA/VRoid Project/Spin.vrma',
-			'Model Pose'     : './VRMA/VRoid Project/ModelPose.vrma',
-			'Squat'          : './VRMA/VRoid Project/Squat.vrma'
-		};
-
-		const SKYBOXES = {
-			'Day' : './skybox/day.png',
-			'Dusk' : './skybox/dusk.png',
-			'Night' : './skybox/night.png'
-		};
-		// #endregion File Paths
-
-		// #region File Loading
-		// --- File Loading Functions ---
-		/**
-		 * Loads a VRM model from a specified URL.
-		 * @param {string} url The URL of the VRM file.
-		 * @returns {Promise<any>} A promise that resolves with the loaded VRM.
-		 */
+		//MARK: File loading
 		async function loadVRM(url, displayName, fileObject) {
 			try {
 				showToast('Loading VRM model', 'folder_shared');
@@ -911,12 +608,12 @@
 
 							// Update header with model name when provided
 							if (displayName) {
-								vrmModelName.textContent = currentVrm.meta.title || currentVrm.meta.name || displayName;
-								document.title = vrmModelName.textContent + ' - Figure';
+								vrmModelNameLabel.textContent = currentVrm.meta.title || currentVrm.meta.name || displayName;
+								document.title = vrmModelNameLabel.textContent + ' - Figure';
 								if (currentVrm.meta.metaVersion == '0') {
-									vrmAuthorName.textContent = currentVrm.meta.author || 'Unknown author';
+									vrmAuthorNameLabel.textContent = currentVrm.meta.author || 'Unknown author';
 								} else {
-									vrmAuthorName.textContent = (currentVrm.meta.authors && currentVrm.meta.authors.length > 0) ? currentVrm.meta.authors.join(', ') : 'Unknown author';
+									vrmAuthorNameLabel.textContent = (currentVrm.meta.authors && currentVrm.meta.authors.length > 0) ? currentVrm.meta.authors.join(', ') : 'Unknown author';
 								}
 							}
 
@@ -1022,11 +719,6 @@
 			}
 		}
 
-		/**
-		 * Loads a VRMA animation from a specified URL and converts it to a THREE.AnimationClip.
-		 * @param {string} url The URL of the VRMA file.
-		 * @returns {Promise<THREE.AnimationClip>} A promise that resolves with the generated AnimationClip.
-		 */
 		async function loadVRMA(url, displayName) {
 			if (!currentVrm) {
 				showToast('VRM model not loaded', 'error');
@@ -1089,13 +781,24 @@
 				// statusDiv.textContent = 'An error occurred while loading the animation file';
 			}
 		}
-		// #endregion File Loading
 
-		// #region Animation Controls
-		// --- Animation Control Functions ---
-		/**
-		 * Starts playing the loaded VRMA animation.
-		 */
+		// Wire Open model button to hidden file input
+		if (openFileBtn) {
+			openFileBtn.addEventListener('click', async (e) => {
+				e.preventDefault();
+				const file = await promptOpenFile();
+				if (file) await handleFileDrop(file);
+			});
+		}
+		if (openFileBtn2) {
+			openFileBtn2.addEventListener('click', async (e) => {
+				e.preventDefault();
+				const file = await promptOpenFile();
+				if (file) await handleFileDrop(file);
+			});
+		}
+
+		//MARK: Animation controls
 		function playAnimation() {
 			if (currentVrm && vrmaAnimationClip && currentMixer) {
 				// Stop any currently playing action
@@ -1126,15 +829,31 @@
 			}
 		}
 
-		/**
-		 * Toggles the pause state of the animation.
-		 */
 		function pauseAnimation() {
 			if (currentAction) {
 				currentAction.paused = !currentAction.paused;
 				// statusDiv.textContent = currentAction.paused ? 'Animation paused' : 'Animation playing...';
 				setPlayPauseIcon(!currentAction.paused);
 			}
+		}
+
+		function setPlayPauseIcon(isPlaying) {
+			if (!playPauseBtn) return;
+			playPauseBtn.textContent = isPlaying ? 'pause' : 'play_arrow';
+		}
+
+		function togglePlayPause() {
+			if (!currentVrm || !vrmaAnimationClip) return;
+
+			// If no action, start playing
+			if (!currentAction) {
+				playAnimation();
+				setPlayPauseIcon(true);
+				return;
+			}
+			// Toggle paused state
+			currentAction.paused = !currentAction.paused;
+			setPlayPauseIcon(!currentAction.paused);
 		}
 
 		/**
@@ -1155,13 +874,229 @@
 				setPlayPauseIcon(false);
 			}
 		}
-		// #endregion Animation Controls
+	
+		if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
+		if (stopBtn) stopBtn.addEventListener('click', stopAnimation);
 
-		// #region UI & Events
-		// --- UI and Event Handlers ---
-		/**
-		 * Updates the state of the control buttons based on loaded files.
-		 */
+		//MARK: Light controls
+		// position
+		lightPosXRange.addEventListener('input', (e) => { if (light) { light.position.x = parseFloat(e.target.value); showLightMarker(); } });
+		lightPosYRange.addEventListener('input', (e) => { if (light) { light.position.y = parseFloat(e.target.value); showLightMarker(); } });
+		lightPosZRange.addEventListener('input', (e) => { if (light) { light.position.z = parseFloat(e.target.value); showLightMarker(); } });
+		// intensity/gama/brightness
+		lightIntensityRange.addEventListener('input', (e) => { if (light) { light.intensity = parseFloat(e.target.value); showLightMarker(); } });
+		// color
+		lightColorBtn.addEventListener('input', (e) => { if (light) { light.color = new THREE.Color(e.target.value); showLightMarker(); } });
+		setLightAsBgAvgBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			if (!scene || !light) return;
+			const bg = scene.background;
+
+			if (bg && bg.isTexture && bg.image) {
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+				const img = bg.image;
+				const size = 64; // downscale for performance
+				canvas.width = size;
+				canvas.height = size;
+				ctx.drawImage(img, 0, 0, size, size);
+				const data = ctx.getImageData(0, 0, size, size).data;
+				let r = 0, g = 0, b = 0;
+				let totalWeight = 0;
+				for (let i = 0; i < data.length; i += 4) {
+					// sRGB -> linear
+					let sr = data[i]     / 255;
+					let sg = data[i + 1] / 255;
+					let sb = data[i + 2] / 255;
+					sr = sr <= 0.04045 ? sr / 12.92 : Math.pow((sr + 0.055) / 1.055, 2.4);
+					sg = sg <= 0.04045 ? sg / 12.92 : Math.pow((sg + 0.055) / 1.055, 2.4);
+					sb = sb <= 0.04045 ? sb / 12.92 : Math.pow((sb + 0.055) / 1.055, 2.4);
+					// perceived luminance
+					const lum = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+					// ignore very dark pixels
+					if (lum < 0.03) continue;
+					// prioritize lighter colors
+					const weight = Math.pow(lum, 0.6);
+					r += sr * weight;
+					g += sg * weight;
+					b += sb * weight;
+					totalWeight += weight;
+				}
+				if (totalWeight === 0) return;
+				r /= totalWeight;
+				g /= totalWeight;
+				b /= totalWeight;
+				// linear -> sRGB
+				r = r <= 0.0031308 ? r * 12.92 : 1.055 * Math.pow(r, 1 / 2.4) - 0.055;
+				g = g <= 0.0031308 ? g * 12.92 : 1.055 * Math.pow(g, 1 / 2.4) - 0.055;
+				b = b <= 0.0031308 ? b * 12.92 : 1.055 * Math.pow(b, 1 / 2.4) - 0.055;
+				// tone boosting
+				const color = new THREE.Color(
+					THREE.MathUtils.clamp(r * 1.1, 0, 1),
+					THREE.MathUtils.clamp(g * 1.1, 0, 1),
+					THREE.MathUtils.clamp(b * 1.1, 0, 1)
+				);
+				light.color.copy(color);
+				lightColorBtn.value = `#${color.getHexString()}`;
+			}
+			else if (bg && bg.isColor) {
+				light.color.copy(bg);
+				lightColorBtn.value = `#${bg.getHexString()}`;
+			}
+		});
+		// reset
+		resetLightBtn.addEventListener('click', (e) => {
+			if (light) {
+				light.position.set(1.0, 1.0, 1.0); // reset pos
+				light.intensity = 3.0; // reset intensity
+				light.color = new THREE.Color('#ffffff'); // reset color
+			}
+			// reset inputs
+			lightPosXRange.value = '1.0';
+			lightPosYRange.value = '1.0';
+			lightPosZRange.value = '1.0';
+			lightIntensityRange.value = '3';
+			lightColorBtn.value = '#ffffff';
+			showLightMarker();
+		});
+
+		//MARK: Background controls
+		backgroundColorBtn.addEventListener('input', (e) => {
+			if (scene) scene.background = new THREE.Color(e.target.value);
+		});
+		setBackgroundImageBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			backgroundImageFileInput.click();
+		});
+
+		backgroundImageFileInput.addEventListener('change', (ev) => {
+			const f = ev.target.files && ev.target.files[0];
+			if (!f) return;
+
+			setSkyboxFromFile(f);
+			backgroundImageFileInput.value = '';
+		});
+
+		skyboxRotationRange.addEventListener('input', (e) => {
+			const angle = THREE.MathUtils.degToRad(e.target.value);
+
+			if (scene && scene.background) {
+				scene.backgroundRotation.y = angle;
+			}
+		});
+		skyboxBlurRange.addEventListener('input', (e) => {
+			scene.backgroundBlurriness = e.target.value;
+		});
+
+		//MARK: Camera controls
+		fovRange.addEventListener('input', (e) => {
+			const fov = parseFloat(e.target.value);
+
+			if (camera) {
+				camera.fov = fov;
+				camera.updateProjectionMatrix();
+			}
+		});
+
+		renderMaterialsSelect.addEventListener('change', () => {
+			if (!currentVrm?.scene) return;
+
+			const mode = renderMaterialsSelect.value;
+
+			currentVrm.scene.traverse(obj => {
+				if (!obj.isMesh || !obj.material) return;
+
+				if (!obj.userData.__originalMaterial) {
+					obj.userData.__originalMaterial = obj.material;
+				}
+
+				const original = obj.userData.__originalMaterial;
+				const materials = Array.isArray(original) ? original : [original];
+
+				let newMaterials = materials.map(mat => {
+					let newMat = null;
+
+					switch (mode) {
+						case 'render-materials-mtoon':
+							return mat;
+
+						case 'render-materials-texture':
+							return new THREE.MeshBasicMaterial({
+								map: mat.map || mat.baseMap || null,
+								transparent: true,
+								depthWrite: true,
+								depthTest: true,
+								alphaTest: 0.001
+							});
+
+						case 'render-materials-solid':
+							return new THREE.MeshNormalMaterial();
+
+						case 'render-materials-wireframe': {
+							const color = getComputedStyle(document.body)
+								.getPropertyValue('--text-color')
+								.trim();
+							return new THREE.MeshNormalMaterial({
+								color,
+								wireframe: true
+							});
+						}
+
+						case 'render-materials-face-orientation': {
+							const cssGreen = getComputedStyle(document.body)
+								.getPropertyValue('--color-green')
+								.trim();
+							const cssRed = getComputedStyle(document.body)
+								.getPropertyValue('--color-red')
+								.trim();
+
+							function cssColorToVec3(css) {
+								const ctx = document.createElement('canvas').getContext('2d');
+								ctx.fillStyle = css;
+								ctx.fillRect(0, 0, 1, 1);
+								const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+								return new THREE.Vector3(r / 255, g / 255, b / 255);
+							}
+
+							return new THREE.ShaderMaterial({
+								side: THREE.DoubleSide,
+								uniforms: {
+									colorFront: { value: cssColorToVec3(cssGreen) },
+									colorBack:  { value: cssColorToVec3(cssRed) },
+									lightDir:   { value: new THREE.Vector3(0.3, 0.7, 0.6).normalize() }
+								},
+								vertexShader: `
+									varying vec3 vNormal;
+									void main() {
+										vNormal = normalize(normalMatrix * normal);
+										gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+									}
+								`,
+								fragmentShader: `
+									uniform vec3 colorFront;
+									uniform vec3 colorBack;
+									uniform vec3 lightDir;
+									varying vec3 vNormal;
+
+									void main() {
+										vec3 baseColor = gl_FrontFacing ? colorFront : colorBack;
+										float light = dot(normalize(vNormal), lightDir);
+										light = light * 0.5 + 0.5;
+										gl_FragColor = vec4(baseColor * light, 1.0);
+									}
+								`
+							});
+						}
+					}
+
+					return mat;
+				});
+
+				obj.material = Array.isArray(original) ? newMaterials : newMaterials[0];
+			});
+		});
+
+		//MARK: UI & Events
 		function updateButtons() {
 			const hasVrm = currentVrm !== undefined;
 			const hasVrma = vrmaAnimationClip !== undefined;
@@ -1304,10 +1239,6 @@
 			});
 		}
 
-		const followHeadChk = document.getElementById('followHeadChk');
-
-		let headFollowEnabled = false;
-		let headFollowStrength = 0.5;
 		followHeadChk.addEventListener('change', () => {
 			headFollowEnabled = followHeadChk.checked;
 
@@ -1472,7 +1403,6 @@
 			}
 		}
 
-		const resetLookBtn = document.getElementById('reset-look-btn');
 		if (resetLookBtn) { resetLookBtn.addEventListener('click', resetLookControls); }
 
 		function resetLookControls() {
@@ -1513,7 +1443,6 @@
 			}
 		}
 
-		const resetExpressionBtn = document.getElementById('reset-expression-btn');
 		if (resetExpressionBtn) { resetExpressionBtn.addEventListener('click', resetExpressionControls); }
 
 		function resetExpressionControls() {
@@ -1532,31 +1461,6 @@
 		createLookControls();
 
 		// #endregion Look controls
-
-		// Toggle play/pause button handler
-		function setPlayPauseIcon(isPlaying) {
-			if (!playPauseBtn) return;
-			playPauseBtn.textContent = isPlaying ? 'pause' : 'play_arrow';
-		}
-
-		function togglePlayPause() {
-			if (!currentVrm || !vrmaAnimationClip) {
-				// statusDiv.textContent = 'A VRM model and animation must be loaded.';
-				return;
-			}
-			// If no action, start playing
-			if (!currentAction) {
-				playAnimation();
-				setPlayPauseIcon(true);
-				return;
-			}
-			// Toggle paused state
-			currentAction.paused = !currentAction.paused;
-			setPlayPauseIcon(!currentAction.paused);
-		}
-
-		if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
-		stopBtn.addEventListener('click', stopAnimation);
 
 		// Reset camera button
 		const resetCameraBtn = document.getElementById('resetCameraBtn');
@@ -1937,8 +1841,6 @@
 		}
 
 		lightMarker = createLightMarker();
-
-		// #endregion UI & Events
 
 		// #region Blend Shape Controls
 		const BLENDSHAPE_ORDER = [
@@ -2382,7 +2284,6 @@
 			});
 		}
 
-
 		function populateSkyboxButtons() {
 			const container = document.getElementById('skybox-buttons');
 			if (!container) return;
@@ -2617,7 +2518,6 @@
 		// #endregion AUGMENTED REALITY
 
 		// #region PHOTO
-		const photoBtn = document.getElementById('photo-btn');
 
 		photoBtn.addEventListener('click', () => {
 			captureCanvasImage({transparent: false})
@@ -2687,7 +2587,7 @@
 	</script>
 
 	<script>
-		// #region settings
+		//MARK: Settings
 
 		function loadSettings() {
 			// theme
@@ -2709,8 +2609,6 @@
 			}
 			styleEl.textContent = `.theme-custom { ${cssText} }`;
 		}
-
-		// #endregion settings
 	</script>
 </body>
 
