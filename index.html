@@ -6,7 +6,9 @@
 	<title>Figure - VRM & VRMA Model Viewer for Web</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-	<!-- seo -->
+	<!--
+		MARK: SEO
+	-->
 	<meta name="description" content="Figure is a fast, lightweight web-based VRM and VRMA model viewer. Preview and inspect VRM characters directly in your browser."/>
 	<meta name="keywords" content="VRM viewer, VRMA viewer, VRM model viewer, VRoid model viewer, VRM web viewer, VRoid, VRoid Studio, VRoid Hub, VRM 1.0, VRM 0.0, 3D avatar viewer, VTuber tools" />
 	<meta name="author" content="Figure" />
@@ -30,8 +32,13 @@
 </head>
 
 <body class="theme-light">
-	<!-- #region SIDEBAR -->
+	<!-- 
+		MARK: SIDEBAR
+	-->
 	<div id="controls-bar" class="sidebar">
+		<!-- 
+			MARK: Sidebar header
+		-->
 		<header class="window-title">
 			<div class="header-left">
 				<button id="openFileBtn" class="icon-button hide-on-tablet" translate="no" title="Open model" data-locale-attr="title:app.sidebar.header.open-model">open_in_browser</button>
@@ -74,6 +81,9 @@
 				</div>
 			</div>
 		</header>
+		<!-- 
+			MARK: Sidebar model tab
+		-->
 		<div class="tab" id="tab-model">
 			<details open><summary data-locale="app.sidebar.model-tab.body">Body</summary>
 				<div class="setting top bottom switch-wrapper">
@@ -131,6 +141,9 @@
 				</div>
 			</details>
 		</div>
+		<!-- 
+			MARK: Sidebar scene tab
+		-->
 		<div class="tab" id="tab-scene">
 			<details open><summary data-locale="app.sidebar.scene-tab.light">Light</summary>
 				<div class="setting top switch-wrapper">
@@ -183,6 +196,9 @@
 			</details>
 			
 		</div>
+		<!-- 
+			MARK: Sidebar render tab
+		-->
 		<div class="tab" id="tab-render">
 			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
 				<div class="setting top bottom switch-wrapper">
@@ -203,22 +219,23 @@
 		</div>
 		<div class="tab-control">
 			<button class="tab-button" id="tab-btn-tab-model">
-				<span class="tab-icon">accessibility</span>
+				<span class="tab-icon" translate="no">accessibility</span>
 				<span class="tab-label" data-locale="app.sidebar.tab-control.model">Model</span>
 			</button>
 			<button class="tab-button" id="tab-btn-tab-scene">
-				<span class="tab-icon">landscape</span>
+				<span class="tab-icon" translate="no">landscape</span>
 				<span class="tab-label" data-locale="app.sidebar.tab-control.scene">Scene</span>
 			</button>
 			<button class="tab-button" id="tab-btn-tab-render">
-				<span class="tab-icon">photo_camera</span>
+				<span class="tab-icon" translate="no">photo_camera</span>
 				<span class="tab-label" data-locale="app.sidebar.tab-control.render">Render</span>
 			</button>
 		</div>
 	</div>
-	<!-- #endregion SIDEBAR -->
 
-	<!-- #region MAIN -->
+	<!--
+		MARK: MAIN
+	-->
 	<div class="main-wrapper" id="mainWrapper" onclick="hideAllMenus();">
 		<header class="window-title">
 			<div class="header-left">
@@ -238,7 +255,6 @@
 			<button class="camera-button" translate="no" id="photo-btn" data-locale-attr="title:app.main.footer.take-photo" title="Take photo"></button>
 		</footer>
 	</div>
-	<!-- #endregion MAIN -->
 
 	<!-- hidden file input for backgroud image button -->
 	<input type="file" id="backgroundImageFileInput" accept="image/*" style="display:none" />

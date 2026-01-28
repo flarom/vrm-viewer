@@ -36,6 +36,16 @@
                     transform: translateY(0);
                 }
             }
+
+            .page {
+                display: none;
+                width: 100%;
+            }
+
+            .page.active {
+                display: block;
+                animation: fadein 0.3s ease;
+            }
         </style>
     </head>
     <body>
@@ -46,50 +56,27 @@
         </div>
 
         <div class="settings-body" id="settingsBody">
-            <div class="main-page">
+            <!-- MAIN -->
+            <div class="page active" id="page-main">
                 <div class="setting top bottom" style="cursor: pointer" onclick="window.open('https://github.com/flarom/figure/issues')">
                     <span class="switch-text" data-locale="dialogs.about.main.report-an-issue">Report an Issue</span>
                     <button class="icon-button">open_in_new</button>
                 </div>
+
                 <div class="setting top" style="cursor: pointer" onclick="showPage('credits')">
                     <span class="switch-text" data-locale="dialogs.about.main.credits">Credits</span>
                     <button class="icon-button">chevron_forward</button>
                 </div>
+
                 <div class="setting bottom" style="cursor: pointer" onclick="showPage('legal')">
                     <span class="switch-text" data-locale="dialogs.about.main.legal">Legal</span>
                     <button class="icon-button">chevron_forward</button>
                 </div>
             </div>
-        </div>
 
-        <script>
-            (() => {
-                const settingsBody = document.getElementById("settingsBody");
-            })();
-
-            function showMainPage() {
-                settingsBody.innerHTML = `<div class="main-page">
-                <div class="setting top bottom" style="cursor: pointer" onclick="window.open('https://github.com/flarom/figure/issues')">
-                    <span class="switch-text" data-locale="dialogs.about.main.report-an-issue">Report an Issue</span>
-                    <button class="icon-button">open_in_new</button>
-                </div>
-                <div class="setting top" style="cursor: pointer" onclick="showPage('credits')">
-                    <span class="switch-text" data-locale="dialogs.about.main.credits">Credits</span>
-                    <button class="icon-button">chevron_forward</button>
-                </div>
-                <div class="setting bottom" style="cursor: pointer" onclick="showPage('legal')">
-                    <span class="switch-text" data-locale="dialogs.about.main.legal">Legal</span>
-                    <button class="icon-button">chevron_forward</button>
-                </div>
-            </div>`;
-            applyLanguage();
-            }
-
-            function showPage(type) {
-                if (type === "credits") {
-                    settingsBody.innerHTML = `
-            <div class="main-page">
-                <div class="setting top bottom" style="cursor: pointer;" onclick="showMainPage()">
+            <!-- CREDITS -->
+            <div class="page" id="page-credits">
+                <div class="setting top bottom" style="cursor: pointer;" onclick="showPage('main')">
                     <span>
                         <span class="icon">arrow_back</span>
                         <span data-locale="common.back">Back</span>
@@ -114,38 +101,41 @@
                 <div class="setting top bottom">
                     <ul>
                         <li><a href='https://developer.gnome.org/hig/' target='_blank'>GNOME Human Interface Guidelines</a> — <span data-locale="dialogs.about.credits.general-inspiration.design-guidelines">Design guidelines</span></li>
-                    </ul
+                    </ul>
                 </div>
             </div>
-            `;
-                }
 
-                if (type === "legal") {
-                    settingsBody.innerHTML = `
-            <div class="main-page">
-                <div class="setting top bottom" style="cursor: pointer;" onclick="showMainPage()">
+            <!-- LEGAL -->
+            <div class="page" id="page-legal">
+                <div class="setting top bottom" style="cursor: pointer;" onclick="showPage('main')">
                     <span>
                         <span class="icon">arrow_back</span>
                         <span data-locale="common.back">Back</span>
                     </span>
                 </div>
                 <div class="setting top bottom">
-                    <div>
-                        <p>Copyright (C) ${new Date().getFullYear()}, Flarom.</p>
-                        <p data-locale="dialogs.about.legal.notice"
-                            data-locale-html
-                            data-locale-vars='${JSON.stringify({
-                                licenseLink: `<a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GNU GPL v3</a>`
-                            })}'
-                            This application comes with absolutely no warranty. It is licensed under the <a href='https://www.gnu.org/licenses/gpl-3.0.html' target='_blank'>GNU GPL v3</a>.
-                        </p>
-                    </div>
+                    <p>Copyright (C) <span id="currentYear"></span>, Flarom.</p>
+                    <p
+                        data-locale="dialogs.about.legal.notice"
+                        data-locale-html
+                        data-locale-vars='{"licenseLink":"<a href=https://www.gnu.org/licenses/gpl-3.0.html target=_blank>GNU GPL v3</a>"}'>
+                    </p>
                 </div>
             </div>
-            `;
-                }
-                applyLanguage();
+
+        <script>
+            (() => {
+                const settingsBody = document.getElementById("settingsBody");
+            })();
+
+            function showPage(name) {
+                document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+
+                const page = document.getElementById(`page-${name}`);
+                if (page) page.classList.add("active");
             }
+
+            document.getElementById("currentYear").textContent = new Date().getFullYear();
 
             async function updateVersionLabel() {
                 const versionLabel = document.querySelector(".version");
