@@ -246,6 +246,7 @@
 			</div>
 			<div class="header-right">
 				<button class="icon-button" translate="no" id="enterARBtn" title="View in AR" data-locale-attr="title:app.main.header.view-in-ar">view_in_ar</button>
+				<button class="icon-button" translate="no" id="poseModeBtn" title="Pose mode">accessibility_new</button>
 				<button class="icon-button" translate="no" id="playPauseBtn" title="Play / Pause animation (P)" disabled data-locale-attr="title:app.main.header.play-pause-animation">play_arrow</button>
 				<button class="icon-button" translate="no" id="resetCameraBtn" title="Recenter (R)" data-locale-attr="title:app.main.header.recenter">reset_focus</button>
 			</div>
@@ -279,6 +280,7 @@
 		import * as THREE from 'three';
 		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { TransformControls } from 'three/addons/controls/TransformControls.js';
 		import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 		import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 		import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -321,6 +323,7 @@
 		const renderMaterialsSelect    = document.getElementById('render-materials');
 		const photoBtn                 = document.getElementById('photo-btn');
 		const enterARBtn               = document.getElementById('enterARBtn');
+		const poseModeBtn              = document.getElementById('poseModeBtn');
 
 		//MARK: Globals
 		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 0.75, 4.0);
@@ -332,6 +335,20 @@
 		let currentAction = undefined;
 		let vrmaAnimationClip = undefined;
 		let groundShadow = null;
+		let transformControls = null;
+		let transformControlsHelper = null;
+
+		let poseModeEnabled = false;
+		let poseSkeletonHelper = null;
+		let poseBoneMarkersGroup = null;
+		let poseBoneMarkers = [];
+		let poseBonePickers = [];
+		let selectedPoseBone = null;
+		let isTransformDragging = false;
+		let posePrevAutoUpdateHumanBones = null;
+		const poseRaycaster = new THREE.Raycaster();
+		const posePointer = new THREE.Vector2();
+		let posePointerDown = null;
 
 		let blinkEnabled = false;
 		let blinkTimeout = null;
@@ -401,7 +418,253 @@
 			scene.add(light);
 			ambientLight = new THREE.AmbientLight(0xffffff, 0.0);
 			scene.add(ambientLight);
+
+			transformControls = new TransformControls(camera, renderer.domElement);
+			transformControlsHelper = transformControls.getHelper();
+			transformControls.setMode('rotate');
+			transformControls.setSpace('local');
+			transformControls.size = 0.8;
+			transformControls.enabled = false;
+			transformControls.visible = false;
+			transformControlsHelper.visible = false;
+			transformControls.addEventListener('mouseDown', () => {
+				controls.enabled = false;
+				posePointerDown = null;
+			});
+			transformControls.addEventListener('mouseUp', () => {
+				if (!isTransformDragging) {
+					controls.enabled = true;
+				}
+			});
+			transformControls.addEventListener('dragging-changed', (event) => {
+				isTransformDragging = !!event.value;
+				controls.enabled = !event.value;
+				if (event.value) {
+					posePointerDown = null;
+				}
+			});
+			transformControls.addEventListener('objectChange', () => {
+				updatePoseMarkers();
+			});
+			scene.add(transformControlsHelper);
 		})();
+
+		function teardownPoseRig() {
+			clearPoseSelection();
+			if (poseSkeletonHelper) {
+				if (poseSkeletonHelper.material) {
+					try { poseSkeletonHelper.material.dispose(); } catch (e) { /* ignore */ }
+				}
+				scene.remove(poseSkeletonHelper);
+				poseSkeletonHelper = null;
+			}
+			if (poseBoneMarkersGroup) {
+				poseBoneMarkersGroup.traverse((obj) => {
+					if (obj.isMesh) {
+						if (obj.geometry) {
+							try { obj.geometry.dispose(); } catch (e) { /* ignore */ }
+						}
+						if (obj.material) {
+							try { obj.material.dispose(); } catch (e) { /* ignore */ }
+						}
+					}
+				});
+				scene.remove(poseBoneMarkersGroup);
+				poseBoneMarkersGroup = null;
+			}
+			poseBoneMarkers = [];
+			poseBonePickers = [];
+		}
+
+		function collectPoseBones() {
+			const bones = [];
+			if (!currentVrm?.scene) return bones;
+			currentVrm.scene.traverse((obj) => {
+				if (obj.isBone) bones.push(obj);
+			});
+			return bones;
+		}
+
+		function setupPoseRig() {
+			teardownPoseRig();
+			if (!currentVrm?.scene) return;
+
+			poseSkeletonHelper = new THREE.SkeletonHelper(currentVrm.scene);
+			poseSkeletonHelper.material.depthTest = false;
+			poseSkeletonHelper.material.transparent = true;
+			poseSkeletonHelper.material.opacity = 0.85;
+			poseSkeletonHelper.visible = poseModeEnabled;
+			poseSkeletonHelper.renderOrder = 998;
+			scene.add(poseSkeletonHelper);
+
+			poseBoneMarkersGroup = new THREE.Group();
+			poseBoneMarkersGroup.visible = poseModeEnabled;
+			scene.add(poseBoneMarkersGroup);
+
+			const markerGeometry = new THREE.SphereGeometry(0.025, 12, 10);
+			const pickerGeometry = new THREE.SphereGeometry(0.09, 10, 8);
+			const bones = collectPoseBones();
+			poseBoneMarkers = bones.map((bone) => {
+				const markerMaterial = new THREE.MeshBasicMaterial({
+					color: 0x4fc3f7,
+					depthTest: false,
+					transparent: true,
+					opacity: 0.95
+				});
+				const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+				marker.userData.poseBone = bone;
+				marker.renderOrder = 999;
+				poseBoneMarkersGroup.add(marker);
+
+				const picker = new THREE.Mesh(
+					pickerGeometry,
+					new THREE.MeshBasicMaterial({
+						transparent: true,
+						opacity: 0,
+						depthTest: false,
+						depthWrite: false
+					})
+				);
+				picker.userData.poseBone = bone;
+				picker.renderOrder = 997;
+				poseBoneMarkersGroup.add(picker);
+				poseBonePickers.push(picker);
+
+				return marker;
+			});
+
+			updatePoseMarkers();
+		}
+
+		function updatePoseMarkers() {
+			if (!poseModeEnabled || !camera || poseBoneMarkers.length === 0) return;
+
+			poseBoneMarkers.forEach((marker, index) => {
+				const bone = marker.userData.poseBone;
+				if (!bone) return;
+
+				bone.getWorldPosition(marker.position);
+				const dist = camera.position.distanceTo(marker.position);
+				const markerScale = Math.max(0.03, dist * 0.018);
+				marker.scale.setScalar(markerScale);
+
+				const picker = poseBonePickers[index];
+				if (picker) {
+					picker.position.copy(marker.position);
+					const pickerScale = Math.max(0.08, dist * 0.04);
+					picker.scale.setScalar(pickerScale);
+				}
+			});
+		}
+
+		function setPoseSelection(bone) {
+			selectedPoseBone = bone || null;
+			if (!transformControls) return;
+
+			if (selectedPoseBone) {
+				transformControls.enabled = true;
+				transformControls.visible = true;
+				if (transformControlsHelper) transformControlsHelper.visible = true;
+				transformControls.attach(selectedPoseBone);
+			} else {
+				transformControls.detach();
+				transformControls.enabled = false;
+				transformControls.visible = false;
+				if (transformControlsHelper) transformControlsHelper.visible = false;
+			}
+
+			poseBoneMarkers.forEach((marker) => {
+				const isSelected = marker.userData.poseBone === selectedPoseBone;
+				marker.material.color.set(isSelected ? 0xffb74d : 0x4fc3f7);
+			});
+		}
+
+		function clearPoseSelection() {
+			setPoseSelection(null);
+		}
+
+		function toPointerNdc(event) {
+			const rect = renderer.domElement.getBoundingClientRect();
+			posePointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+			posePointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+		}
+
+		function pickPoseBone(event) {
+			toPointerNdc(event);
+			poseRaycaster.setFromCamera(posePointer, camera);
+			const hits = poseRaycaster.intersectObjects(poseBonePickers, false);
+			if (hits.length > 0) {
+				setPoseSelection(hits[0].object.userData.poseBone);
+				return;
+			}
+
+			if (poseSkeletonHelper) {
+				const lineHits = poseRaycaster.intersectObject(poseSkeletonHelper, true);
+				if (lineHits.length > 0) {
+					const hitPoint = lineHits[0].point;
+					let closestBone = null;
+					let closestDist = Infinity;
+
+					poseBoneMarkers.forEach((marker) => {
+						const bone = marker.userData.poseBone;
+						if (!bone) return;
+						const d = marker.position.distanceTo(hitPoint);
+						if (d < closestDist) {
+							closestDist = d;
+							closestBone = bone;
+						}
+					});
+
+					if (closestBone && closestDist < 0.25) {
+						setPoseSelection(closestBone);
+						return;
+					}
+				}
+			}
+
+			clearPoseSelection();
+		}
+
+		function setPoseMode(enabled) {
+			const hasVrm = !!currentVrm;
+			poseModeEnabled = !!enabled && hasVrm;
+
+			if (poseModeBtn) {
+				poseModeBtn.classList.toggle('button-on', poseModeEnabled);
+				poseModeBtn.setAttribute('aria-pressed', poseModeEnabled ? 'true' : 'false');
+			}
+
+			if (poseSkeletonHelper) poseSkeletonHelper.visible = poseModeEnabled;
+			if (poseBoneMarkersGroup) poseBoneMarkersGroup.visible = poseModeEnabled;
+
+			if (poseModeEnabled) {
+				if (currentVrm?.humanoid && posePrevAutoUpdateHumanBones === null) {
+					posePrevAutoUpdateHumanBones = !!currentVrm.humanoid.autoUpdateHumanBones;
+					currentVrm.humanoid.autoUpdateHumanBones = false;
+				}
+
+				stopAnimation({ resetPose: false });
+				if (!poseSkeletonHelper || poseBoneMarkers.length === 0) {
+					setupPoseRig();
+				}
+				updatePoseMarkers();
+				if (transformControlsHelper) transformControlsHelper.visible = !!selectedPoseBone;
+				showToast('Pose mode enabled', 'accessibility_new');
+			} else {
+				clearPoseSelection();
+				controls.enabled = true;
+				if (transformControlsHelper) transformControlsHelper.visible = false;
+
+				if (currentVrm?.humanoid && posePrevAutoUpdateHumanBones !== null) {
+					currentVrm.humanoid.autoUpdateHumanBones = posePrevAutoUpdateHumanBones;
+				}
+				posePrevAutoUpdateHumanBones = null;
+
+				showToast('Pose mode disabled', 'accessibility');
+			}
+
+			updateButtons();
+		}
 
 		//MARK: Loader plugins
 		const loader = new GLTFLoader();
@@ -605,6 +868,7 @@
 
 							// Remove previous VRM if one is loaded
 							if (currentVrm) {
+								teardownPoseRig();
 								scene.remove(currentVrm.scene);
 								// Safely dispose of geometries/materials/textures and stop mixers
 								disposeVrm(currentVrm);
@@ -618,6 +882,7 @@
 								vrm.scene.rotation._y = Math.PI; // VRM 1.x
 							}
 							currentVrm = vrm;
+							posePrevAutoUpdateHumanBones = null;
 
 							// Create a new AnimationMixer for the current VRM
 							currentMixer = new THREE.AnimationMixer(vrm.scene);
@@ -650,6 +915,10 @@
 							console.log('VRM loaded:', vrm);
 
 							updateButtons();
+
+							if (poseModeEnabled) {
+								setupPoseRig();
+							}
 
 							// Try to populate thumbnail from glTF images (safe path: uri or bufferView)
 							try {
@@ -873,26 +1142,40 @@
 		}
 
 		/**
-		 * Stops the animation and resets the model's pose.
+		 * Stop active actions and optionally reset humanoid to default normalized pose.
+		 * @param {{ resetPose?: boolean }} options
 		 */
-		function stopAnimation() {
+		function stopAnimation(options = {}) {
+			const resetPose = options.resetPose !== false;
+
 			if (currentAction) {
 				currentAction.stop();
 				currentAction = undefined;
-				currentMixer.stopAllAction(); // Stop all actions on the mixer
+			}
 
-				// Reset VRM pose (optional, but good for stopping)
-				if (currentVrm) {
-					currentVrm.humanoid.resetNormalizedPose();
-				}
+			if (currentMixer) {
+				currentMixer.stopAllAction();
+			}
 
-				// reset play/pause icon to play
-				setPlayPauseIcon(false);
+			if (resetPose && currentVrm?.humanoid) {
+				try { currentVrm.humanoid.resetNormalizedPose(); } catch (e) { /* ignore */ }
+			}
+
+			setPlayPauseIcon(false);
+
+			if (poseModeEnabled) {
+				clearPoseSelection();
+				updatePoseMarkers();
 			}
 		}
 	
 		if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
-		if (stopBtn) stopBtn.addEventListener('click', stopAnimation);
+		if (stopBtn) stopBtn.addEventListener('click', () => stopAnimation({ resetPose: true }));
+		if (poseModeBtn) {
+			poseModeBtn.addEventListener('click', () => {
+				setPoseMode(!poseModeEnabled);
+			});
+		}
 
 		//MARK: Light controls
 		// position
@@ -1122,8 +1405,8 @@
 			vrmaBtns.forEach(btn => { btn.disabled = !hasVrm; });
 
 			// Enable play/pause and stop buttons only if both VRM and an animation are loaded
-			if (playPauseBtn) playPauseBtn.disabled = !(hasVrm && hasVrma);
-			stopBtn.disabled = !(hasVrm && hasVrma);
+			if (playPauseBtn) playPauseBtn.disabled = !(hasVrm && hasVrma) || poseModeEnabled;
+			stopBtn.disabled = !hasVrm;
 
 			// enable/disable selects
 			if (animationSelect) animationSelect.disabled = !hasVrm;
@@ -1524,6 +1807,27 @@
 			camera.aspect = window.innerWidth / window.innerHeight;
 			camera.updateProjectionMatrix();
 			renderer.setSize(window.innerWidth, window.innerHeight);
+		});
+
+		renderer.domElement.addEventListener('pointerdown', (event) => {
+			if (!poseModeEnabled || event.button !== 0) return;
+			if (transformControls && transformControls.axis !== null) return;
+			posePointerDown = { x: event.clientX, y: event.clientY };
+		});
+
+		renderer.domElement.addEventListener('pointerup', (event) => {
+			if (!poseModeEnabled || event.button !== 0) return;
+			if (isTransformDragging) return;
+			if (!posePointerDown) return;
+
+			const dx = event.clientX - posePointerDown.x;
+			const dy = event.clientY - posePointerDown.y;
+			posePointerDown = null;
+
+			if (Math.hypot(dx, dy) > 4) return;
+			if (transformControls && transformControls.axis !== null) return;
+
+			pickPoseBone(event);
 		});
 
 		// --- Drag-and-Drop File Support ---
@@ -2345,15 +2649,19 @@
 
 			const deltaTime = clock.getDelta();
 
-			// Update look controls (joystick / follow camera)
-			try { updateLookControl(deltaTime); } catch (e) { /* ignore if not initialized */ }
+			if (!poseModeEnabled) {
+				// Update look controls (joystick / follow camera)
+				try { updateLookControl(deltaTime); } catch (e) { /* ignore if not initialized */ }
+			}
 
-			// Update VRM and AnimationMixer
+			// Keep VRM systems running in pose mode (spring bones, colliders, expressions).
 			if (currentVrm) {
 				currentVrm.update(deltaTime);
 			}
 			if (currentMixer) {
-				currentMixer.update(deltaTime);
+				if (!poseModeEnabled) {
+					currentMixer.update(deltaTime);
+				}
 			}
 
 			// Keep shadow centered under the current VRM on the ground
@@ -2362,7 +2670,15 @@
 				groundShadow.position.z = currentVrm.scene.position.z;
 			}
 
-			updateHeadFollow(); // update neck rotation
+			if (!poseModeEnabled) {
+				updateHeadFollow(); // update neck rotation
+			}
+
+			if (poseModeEnabled) {
+				if (poseSkeletonHelper) poseSkeletonHelper.updateMatrixWorld(true);
+				updatePoseMarkers();
+			}
+
 			controls.update(); // Update orbit controls
 			renderer.render(scene, camera);
 		}
