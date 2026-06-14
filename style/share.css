@@ -60,7 +60,24 @@ header.window-title {
     background-color: white;
     border: 1px solid var(--border-light-color);
     box-shadow: var(--shadow);
-    cursor: pointer;
+}
+
+#crosshair {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	z-index: 99999;
+	display: none;
+}
+
+.crosshair-dot {
+	width: 3px;
+	height: 3px;
+	border-radius: 50%;
+	background: white;
+	box-shadow: 0 0 2px 1px black;
 }
 
 @media screen and (max-width: 800px) {
@@ -166,7 +183,6 @@ button {
     border: none;
     color: var(--button-color);
     font-size: 16px;
-    cursor: pointer;
     transition: all 0.3s ease;
     border-radius: 5px;
     height: 30px;
@@ -315,7 +331,6 @@ button.danger:hover {
     text-align: left;
     background: none;
     border: none;
-    cursor: pointer;
     font-size: 14px;
     align-items: center;
     gap: 10px;
@@ -333,7 +348,6 @@ button.danger:hover {
     text-align: left;
     background: none;
     border: none;
-    cursor: pointer;
     align-items: center;
     gap: 10px;
     transition: none;
@@ -501,7 +515,6 @@ button.danger:hover {
     font-weight: bold;
     padding: 10px 0px;
     list-style: none;
-    cursor: pointer;
     user-select: none;
     border-radius: 12px;
     color: var(--title-color);
@@ -548,7 +561,6 @@ button.danger:hover {
     padding: 6px 5px 6px 8px;
     background: var(--background-color-2);
     border: none;
-    cursor: pointer;
     font-size: normal;
     color: var(--title-color);
     border-radius: 12px;
@@ -615,7 +627,6 @@ button.danger:hover {
     color: var(--text-color);
     text-align: left;
     border: none;
-    cursor: pointer;
     transition: 0.3s;
     width: 100%;
     display: flex;
@@ -809,7 +820,6 @@ button.danger:hover {
 	background: none;
 	border: none;
 	color: var(--color-text);
-	cursor: pointer;
 
     margin: 4px;
     border-radius: 8px;
@@ -863,7 +873,6 @@ button.danger:hover {
     border: 0;
     margin-left: 5px;
     box-shadow: var(--shadow-light);
-    cursor: pointer;
     overflow: hidden;
     transition: border-radius .3s;
 }

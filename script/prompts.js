@@ -94,26 +94,26 @@ function handleActivation(e) {
 	activateTab("tab-model");
 })();
 
-function toggleSidebar(sidebarId) {
+function toggleSidebar(sidebarId, show = "auto") {
     const sidebar = document.getElementById(sidebarId);
 
-    // document.querySelectorAll(".sidebar").forEach((s) => {
-    //     if (s !== sidebar) {
-    //         s.classList.remove("show");
-    //     }
-    // });
+    if (show === "auto") {
+        sidebar.classList.toggle("show");
 
-    sidebar.classList.toggle("show");
+        if (sidebar.classList.contains("show")) {
+            const buttons = sidebar.querySelectorAll(".file");
+            if (buttons.length > 0) {
+                buttons[0].focus();
+            }
 
-    if (sidebar.classList.contains("show")) {
-        const buttons = sidebar.querySelectorAll(".file");
-        if (buttons.length > 0) {
-            buttons[0].focus();
+            sidebar.addEventListener("keydown", handleArrowNavigation);
+        } else {
+            sidebar.removeEventListener("keydown", handleArrowNavigation);
         }
-
-        sidebar.addEventListener("keydown", handleArrowNavigation);
+    } else if (show) {
+        sidebar.classList.add("show");
     } else {
-        sidebar.removeEventListener("keydown", handleArrowNavigation);
+        sidebar.classList.remove("show");
     }
 
     localStorage.setItem(`last${sidebarId}SidebarState`, sidebar.classList.contains("show"));

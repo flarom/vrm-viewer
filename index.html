@@ -201,9 +201,16 @@
 		-->
 		<div class="tab" id="tab-render">
 			<details open><summary data-locale="app.sidebar.scene-tab.camera">Camera</summary>
-				<div class="setting top bottom switch-wrapper">
+				<div class="setting top switch-wrapper">
 					<span class="switch-text" data-locale="app.sidebar.render-tab.camera.fov">Field of view</span>
 					<input type="range" id="fov-range" min="5" max="120" step="5" value="30">
+				</div>
+				<div class="setting bottom switch-wrapper">
+					<span class="switch-text">Camera moving</span>
+					<select id="camera-mode">
+						<option value="orbital">Orbital</option>
+						<option value="positional">Positional</option>
+					</select>
 				</div>
 			</details>
 			<div class="setting top bottom switch-wrapper">
@@ -255,6 +262,10 @@
 		<footer class="camera-ui" id="camera-ui">
 			<button class="camera-button" translate="no" id="photo-btn" data-locale-attr="title:app.main.footer.take-photo" title="Take photo"></button>
 		</footer>
+
+		<div id="crosshair">
+			<div class="crosshair-dot"></div>
+		</div>
 	</div>
 
 	<!-- hidden file input for backgroud image button -->
@@ -320,14 +331,16 @@
 		const skyboxBlurRange          = document.getElementById('skybox-blur-range');
 		// camera controllers
 		const fovRange                 = document.getElementById('fov-range');
+		const cameraModeSelect         = document.getElementById('camera-mode');
 		const renderMaterialsSelect    = document.getElementById('render-materials');
 		const photoBtn                 = document.getElementById('photo-btn');
 		const enterARBtn               = document.getElementById('enterARBtn');
 		const poseModeBtn              = document.getElementById('poseModeBtn');
+		const crosshair 			   = document.getElementById('crosshair');
 
 		//MARK: Globals
-		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 0.75, 4.0);
-		const DEFAULT_CONTROLS_TARGET = new THREE.Vector3(0.0, 1.0, 0.0);
+		const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0.0, 1.25, 2.0);
+		const DEFAULT_CONTROLS_TARGET = new THREE.Vector3(0.0, 1.25, 0.0);
 		const LAST_VRM_KEY = 'vrmViewer.lastVrm';
 		let renderer, camera, controls, scene, light, ambientLight;
 		let currentVrm = undefined;
@@ -356,6 +369,32 @@
 
 		let headFollowEnabled = false;
 		let headFollowStrength = 0.5;
+
+		let cameraMode = 'orbital';
+
+		// Crosshair should only be visible when the user is in first-person
+		// (positional) camera mode AND pose mode is active.
+		function updateCrosshairVisibility() {
+			if (!crosshair) return;
+			crosshair.style.display = (cameraMode === 'positional' && poseModeEnabled) ? 'block' : 'none';
+		}
+
+		let pointerLocked = false;
+
+		const movementKeys = {
+			w: false,
+			a: false,
+			s: false,
+			d: false,
+			space: false,
+			shift: false
+		};
+
+		let cameraYaw = 0;
+		let cameraPitch = 0;
+
+		const positionalMoveSpeed = 1.0;
+		const positionalLookSpeed = 0.006;
 
 		const VRM_MODEL_URL = './VRM/default.vrm'; // Default VRM model
 
@@ -395,7 +434,7 @@
 		(function initThree(){
 			renderer = new THREE.WebGLRenderer({ antialias:true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.setPixelRatio(window.devicePixelRatio || 1);
+			renderer.setPixelRatio(1);
 			renderer.outputEncoding = THREE.sRGBEncoding;
 			renderer.domElement.className = 'render';
 			mainWrapper.appendChild(renderer.domElement);
@@ -584,6 +623,15 @@
 		}
 
 		function toPointerNdc(event) {
+			// In first-person + pose mode the crosshair marks the pick point
+			// (screen center), regardless of pointer lock support — this also
+			// covers touchscreens, where pointer lock isn't available.
+			if (cameraMode === 'positional' && poseModeEnabled) {
+				posePointer.x = 0;
+				posePointer.y = 0;
+				return;
+			}
+
 			const rect = renderer.domElement.getBoundingClientRect();
 			posePointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
 			posePointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -636,6 +684,8 @@
 
 			if (poseSkeletonHelper) poseSkeletonHelper.visible = poseModeEnabled;
 			if (poseBoneMarkersGroup) poseBoneMarkersGroup.visible = poseModeEnabled;
+
+			updateCrosshairVisibility();
 
 			if (poseModeEnabled) {
 				if (currentVrm?.humanoid && posePrevAutoUpdateHumanBones === null) {
@@ -1395,6 +1445,92 @@
 			});
 		});
 
+		cameraModeSelect?.addEventListener('change', () => {
+			setCameraMode(cameraModeSelect.value);
+		});
+
+		function setCameraMode(mode) {
+			cameraMode = mode;
+
+			if (mode === 'orbital') {
+				controls.enabled = true;
+
+				if (document.pointerLockElement === renderer.domElement) {
+					document.exitPointerLock();
+				}
+			}
+			else {
+				controls.enabled = false;
+			}
+
+			updateCrosshairVisibility();
+		}
+
+		renderer.domElement.addEventListener('click', () => {
+			if (
+				cameraMode === 'positional' &&
+				document.pointerLockElement !== renderer.domElement
+			) {
+				renderer.domElement.requestPointerLock();
+				toggleSidebar('controls-bar', false);
+			}
+		});
+
+		document.addEventListener('pointerlockchange', () => {
+			pointerLocked =
+				document.pointerLockElement === renderer.domElement;
+		});
+
+		document.addEventListener('mousemove', (event) => {
+			if (
+				cameraMode !== 'positional' ||
+				!pointerLocked
+			) return;
+
+			cameraYaw -= event.movementX * positionalLookSpeed;
+
+			cameraPitch -= event.movementY * positionalLookSpeed;
+
+			cameraPitch = THREE.MathUtils.clamp(
+				cameraPitch,
+				-Math.PI / 2 + 0.01,
+				Math.PI / 2 - 0.01
+			);
+
+			camera.rotation.order = 'YXZ';
+
+			camera.rotation.y = cameraYaw;
+			camera.rotation.x = cameraPitch;
+		});
+
+		document.addEventListener('keydown', (e) => {
+			switch (e.code) {
+				case 'KeyW': movementKeys.w = true; break;
+				case 'KeyA': movementKeys.a = true; break;
+				case 'KeyS': movementKeys.s = true; break;
+				case 'KeyD': movementKeys.d = true; break;
+				case 'Space': movementKeys.space = true; break;
+				case 'ShiftLeft':
+				case 'ShiftRight':
+					movementKeys.shift = true;
+					break;
+			}
+		});
+
+		document.addEventListener('keyup', (e) => {
+			switch (e.code) {
+				case 'KeyW': movementKeys.w = false; break;
+				case 'KeyA': movementKeys.a = false; break;
+				case 'KeyS': movementKeys.s = false; break;
+				case 'KeyD': movementKeys.d = false; break;
+				case 'Space': movementKeys.space = false; break;
+				case 'ShiftLeft':
+				case 'ShiftRight':
+					movementKeys.shift = false;
+					break;
+			}
+		});
+
 		//MARK: UI & Events
 		function updateButtons() {
 			const hasVrm = currentVrm !== undefined;
@@ -1769,20 +1905,63 @@
 			return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 		}
 		function smoothResetCamera(duration = 600) {
-			if (resetCameraAnimId) cancelAnimationFrame(resetCameraAnimId);
+			if (resetCameraAnimId)
+				cancelAnimationFrame(resetCameraAnimId);
+
 			const startPos = camera.position.clone();
-			const startTarget = controls.target.clone();
 			const endPos = DEFAULT_CAMERA_POSITION.clone();
+
+			if (cameraMode === 'positional') {
+				const startYaw = cameraYaw;
+				const startPitch = cameraPitch;
+
+				const endYaw = 0;
+				const endPitch = 0;
+
+				const startTime = performance.now();
+
+				function step(now) {
+					const elapsed = now - startTime;
+					const t = Math.min(1, elapsed / duration);
+					const e = easeInOutQuad(t);
+
+					camera.position.lerpVectors(startPos, endPos, e);
+
+					cameraYaw =
+						THREE.MathUtils.lerp(startYaw, endYaw, e);
+
+					cameraPitch =
+						THREE.MathUtils.lerp(startPitch, endPitch, e);
+
+					camera.rotation.order = 'YXZ';
+					camera.rotation.y = cameraYaw;
+					camera.rotation.x = cameraPitch;
+
+					if (t < 1) {
+						resetCameraAnimId = requestAnimationFrame(step);
+					} else {
+						resetCameraAnimId = null;
+					}
+				}
+
+				resetCameraAnimId = requestAnimationFrame(step);
+				return;
+			}
+
+			const startTarget = controls.target.clone();
 			const endTarget = DEFAULT_CONTROLS_TARGET.clone();
+
 			const startTime = performance.now();
 
 			function step(now) {
 				const elapsed = now - startTime;
-				let t = Math.min(1, elapsed / duration);
+				const t = Math.min(1, elapsed / duration);
 				const e = easeInOutQuad(t);
+
 				camera.position.lerpVectors(startPos, endPos, e);
 				controls.target.lerpVectors(startTarget, endTarget, e);
 				controls.update();
+
 				if (t < 1) {
 					resetCameraAnimId = requestAnimationFrame(step);
 				} else {
@@ -1809,25 +1988,45 @@
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		});
 
+		// Ensure the canvas doesn't hand touch gestures (scroll/pan/zoom) to the
+		// browser before pointer events reach our pose-bone picking logic.
+		renderer.domElement.style.touchAction = 'none';
+
 		renderer.domElement.addEventListener('pointerdown', (event) => {
 			if (!poseModeEnabled || event.button !== 0) return;
 			if (transformControls && transformControls.axis !== null) return;
-			posePointerDown = { x: event.clientX, y: event.clientY };
+			posePointerDown = { x: event.clientX, y: event.clientY, id: event.pointerId };
+
+			// Capture the pointer so we reliably get the matching pointerup
+			// even if the finger drifts off the canvas (common on touchscreens).
+			try { renderer.domElement.setPointerCapture(event.pointerId); } catch (e) {}
 		});
 
 		renderer.domElement.addEventListener('pointerup', (event) => {
 			if (!poseModeEnabled || event.button !== 0) return;
 			if (isTransformDragging) return;
 			if (!posePointerDown) return;
+			if (posePointerDown.id !== undefined && event.pointerId !== posePointerDown.id) return;
 
 			const dx = event.clientX - posePointerDown.x;
 			const dy = event.clientY - posePointerDown.y;
 			posePointerDown = null;
 
+			try { renderer.domElement.releasePointerCapture(event.pointerId); } catch (e) {}
+
 			if (Math.hypot(dx, dy) > 4) return;
 			if (transformControls && transformControls.axis !== null) return;
 
 			pickPoseBone(event);
+		});
+
+		// If the gesture is cancelled (e.g. the browser takes over for a
+		// system gesture), clear the pending pick so a stale pointerdown
+		// doesn't block future taps.
+		renderer.domElement.addEventListener('pointercancel', (event) => {
+			if (posePointerDown && posePointerDown.id === event.pointerId) {
+				posePointerDown = null;
+			}
 		});
 
 		// --- Drag-and-Drop File Support ---
@@ -2034,7 +2233,20 @@
 			}
 
 			//// pause
-			if (e.key === 'p' || e.key === ' ') {
+			if (e.key === 'p') {
+				e.preventDefault();
+				togglePlayPause();
+
+				if (currentAction && currentAction.paused) {
+					showToast('Animation paused', 'pause');
+				} else {
+					showToast('Animation playing', 'play_arrow');
+				}
+				return;
+			}
+			if (e.key === ' ') {
+				if (cameraMode != "orbital") return;
+
 				e.preventDefault();
 				togglePlayPause();
 
@@ -2641,10 +2853,15 @@
 		// #endregion skybox
 
 		// #region Animation Loop
-		// --- Animation Loop ---
+		// MARK: Animation Loop
 		const clock = new THREE.Clock();
+		let inXRSession = false; // true while an immersive-ar session owns the render loop
 
 		function animate() {
+			// While in XR, renderer.setAnimationLoop drives rendering instead.
+			// Stop re-scheduling this legacy RAF loop to avoid double rendering.
+			if (inXRSession) return;
+
 			requestAnimationFrame(animate);
 
 			const deltaTime = clock.getDelta();
@@ -2677,10 +2894,58 @@
 			if (poseModeEnabled) {
 				if (poseSkeletonHelper) poseSkeletonHelper.updateMatrixWorld(true);
 				updatePoseMarkers();
+			}			
+
+			updatePositionalCamera(deltaTime);
+
+			if (cameraMode === 'orbital') {
+				controls.update();
 			}
 
-			controls.update(); // Update orbit controls
 			renderer.render(scene, camera);
+		}
+		
+
+		function updatePositionalCamera(delta) {
+			if (cameraMode !== 'positional') {
+				return;
+			}
+
+			const speed = positionalMoveSpeed * delta;
+
+			const forward = new THREE.Vector3();
+			camera.getWorldDirection(forward);
+
+			forward.y = 0;
+			forward.normalize();
+
+			const right = new THREE.Vector3();
+			right.crossVectors(forward, camera.up).normalize();
+
+			const movement = new THREE.Vector3();
+
+			if (movementKeys.w)
+				movement.add(forward);
+
+			if (movementKeys.s)
+				movement.sub(forward);
+
+			if (movementKeys.a)
+				movement.sub(right);
+
+			if (movementKeys.d)
+				movement.add(right);
+
+			if (movement.lengthSq() > 0) {
+				movement.normalize();
+				camera.position.addScaledVector(movement, speed);
+			}
+
+			if (movementKeys.space)
+				camera.position.y += speed;
+
+			if (movementKeys.shift)
+				camera.position.y -= speed;
 		}
 
 		// Start the animation loop
@@ -2758,6 +3023,7 @@
 			}
 
 			renderer.xr.enabled = true;
+			renderer.xr.setFramebufferScaleFactor(0.8); // lower render resolution in AR for performance
 			renderer.setClearAlpha(0);
 			renderer.xr.setReferenceSpaceType('local-floor');
 
@@ -2779,6 +3045,10 @@
 			renderer.xr.setSession(session);
 			camera.matrixAutoUpdate = false;
 
+			// Stop the legacy RAF loop and hand full control to the XR loop
+			inXRSession = true;
+			if (controls) controls.enabled = false;
+
 			arPlaced = false;
 			arReticle = createARReticle();
 
@@ -2792,7 +3062,19 @@
 
 			showToast('AR on', 'camera');
 
+			const arClock = new THREE.Clock();
+
 			renderer.setAnimationLoop((time, frame) => {
+				const deltaTime = arClock.getDelta();
+
+				// Keep VRM animation/expressions/spring bones running in AR
+				if (currentVrm) {
+					currentVrm.update(deltaTime);
+				}
+				if (currentMixer && !poseModeEnabled) {
+					currentMixer.update(deltaTime);
+				}
+
 				if (frame && hitTestSource) {
 					const hitResults = frame.getHitTestResults(hitTestSource);
 
@@ -2800,7 +3082,7 @@
 						const hit = hitResults[0];
 						const pose = hit.getPose(xrRefSpace);
 
-						arReticle.visible = true;
+						arReticle.visible = !arPlaced;
 						arReticle.matrix.fromArray(pose.transform.matrix);
 					} else {
 						arReticle.visible = false;
@@ -2821,6 +3103,12 @@
 
 				hitTestSource = null;
 				xrRefSpace = null;
+
+				// Resume the normal render loop
+				inXRSession = false;
+				if (controls) controls.enabled = (cameraMode === 'orbital');
+				clock.getDelta(); // discard time elapsed during AR
+				animate();
 
 				showToast('AR off', 'info');
 			});
@@ -2916,6 +3204,20 @@
 			promptMessage(img.outerHTML, true, false, toolbarLeft);
 		}
 		// #endregion PHOTO
+
+		function getInteractionNDC() {
+			if (cameraMode === 'positional') {
+				return {
+					x: 0,
+					y: 0
+				};
+			}
+
+			return {
+				x: mouse.x,
+				y: mouse.y
+			};
+		}
 	</script>
 
 	<script>

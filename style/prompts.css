@@ -252,8 +252,8 @@ input[type="range"] {
     border-radius: 6px;
     background: var(--border-light-color);
     outline: none;
-    cursor: pointer;
 }
+
 input[type="range"]::-moz-range-thumb,
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -263,7 +263,6 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 50%;
     border: 2px solid var(--border-light-color);
     background: var(--button-color-2);
-    cursor: pointer;
     box-shadow: var(--shadow-light);
 }
 
@@ -279,7 +278,6 @@ input[type="color"] {
     border-radius: 20px;
     padding: 0;
     border: 1px solid var(--border-field-color);
-    cursor: pointer;
     box-shadow: var(--shadow-light);
     outline: none;
 }
@@ -292,7 +290,6 @@ input[type="color"] {
 .prompt-button {
     padding: 5px 30px;
     border-radius: 15px;
-    cursor: pointer;
     color: var(--text-color);
     border: 1px solid var(--border-light-color);
     background-color: transparent;
@@ -322,7 +319,6 @@ input[type="color"] {
 
 .table-item-ex {
     background: var(--field-color);
-    cursor: pointer;
     border-radius: 3px;
     transition: 0.3s;
     border: 1px solid var(--border-field-color);
@@ -446,7 +442,6 @@ input[type="color"] {
 .prompt-preview-list li {
     background: var(--background-color);
     padding: 10px;
-    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -514,7 +509,6 @@ input[type="color"] {
 
 .slider {
     position: absolute;
-    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
@@ -650,7 +644,6 @@ h5.setting-subtitle {
     flex-direction: column;
     justify-content: center;
     border-radius: 15px;
-    cursor: pointer;
     padding: 20px;
     transition: all .3s;
     height: 300px;
@@ -723,7 +716,6 @@ h5.setting-subtitle {
     border: none;
     color: var(--button-color);
     padding: 4px 8px;
-    cursor: pointer;
     border-radius: 8px;
     transition: 0.2s;
 }
@@ -740,7 +732,6 @@ h5.setting-subtitle {
     font-family: 'Material Symbols Rounded';
     background: transparent;
     border: none;
-    cursor: pointer;
     padding: 4px;
     color: inherit;
 }
@@ -805,7 +796,6 @@ h5.setting-subtitle {
     width: 24px;
     height: 24px;
     border-radius: 12px;
-    cursor: pointer;
     transition: border-radius 0.3s;
 }
 
