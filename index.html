@@ -515,13 +515,38 @@
 			poseBonePickers = [];
 		}
 
+		function isPoseRootBone(bone) {
+			return !!bone && bone.name.toLowerCase() === 'root';
+		}
+
 		function collectPoseBones() {
 			const bones = [];
 			if (!currentVrm?.scene) return bones;
 			currentVrm.scene.traverse((obj) => {
-				if (obj.isBone) bones.push(obj);
+				if (obj.isBone && !isPoseRootBone(obj)) bones.push(obj);
 			});
 			return bones;
+		}
+
+		function rebuildPoseSkeletonGeometry() {
+			if (!poseSkeletonHelper) return;
+			const bones = poseSkeletonHelper.bones;
+			const positions = [];
+			const colors = [];
+			const color1 = new THREE.Color(0, 0, 1);
+			const color2 = new THREE.Color(0, 1, 0);
+			bones.forEach((bone) => {
+				if (bone.parent && bone.parent.isBone) {
+					positions.push(0, 0, 0, 0, 0, 0);
+					colors.push(color1.r, color1.g, color1.b, color2.r, color2.g, color2.b);
+				}
+			});
+			if (poseSkeletonHelper.geometry) {
+				try { poseSkeletonHelper.geometry.dispose(); } catch (e) { /* ignore */ }
+			}
+			poseSkeletonHelper.geometry = new THREE.BufferGeometry();
+			poseSkeletonHelper.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+			poseSkeletonHelper.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 		}
 
 		function setupPoseRig() {
@@ -529,6 +554,10 @@
 			if (!currentVrm?.scene) return;
 
 			poseSkeletonHelper = new THREE.SkeletonHelper(currentVrm.scene);
+			poseSkeletonHelper.bones = poseSkeletonHelper.bones.filter(
+				(bone) => !isPoseRootBone(bone) && !(bone.parent && isPoseRootBone(bone.parent))
+			);
+			rebuildPoseSkeletonGeometry();
 			poseSkeletonHelper.material.depthTest = false;
 			poseSkeletonHelper.material.transparent = true;
 			poseSkeletonHelper.material.opacity = 0.85;
@@ -597,6 +626,7 @@
 		}
 
 		function setPoseSelection(bone) {
+			if (bone && isPoseRootBone(bone)) bone = null;
 			selectedPoseBone = bone || null;
 			if (!transformControls) return;
 
@@ -704,6 +734,12 @@
 				clearPoseSelection();
 				controls.enabled = true;
 				if (transformControlsHelper) transformControlsHelper.visible = false;
+
+				if (currentVrm?.humanoid) {
+					try {
+						currentVrm.humanoid.setNormalizedPose(currentVrm.humanoid.getRawPose());
+					} catch (e) { /* ignore */ }
+				}
 
 				if (currentVrm?.humanoid && posePrevAutoUpdateHumanBones !== null) {
 					currentVrm.humanoid.autoUpdateHumanBones = posePrevAutoUpdateHumanBones;
